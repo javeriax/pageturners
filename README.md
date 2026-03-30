@@ -85,6 +85,9 @@ Might need:
 
 npm install react-router-dom
 
+If peer dependency error:
+npm install react-router-dom --legacy-peer-deps
+
 👨‍💻 Workflow & Branching
 
 Never commit directly to main. Always work on your own branch:
