@@ -1,6 +1,10 @@
 
 Welcome to the Page Turners development repository. This project is a full-stack web application built with React (Vite), Flask, and MongoDB Atlas.
 
+You can use these chat links which have context of the setup for help:
+https://gemini.google.com/share/3c31f581825f (GEMINI KNOWS THE FOLDER STRUCTURE)
+https://claude.ai/share/05aff5fb-8467-48d3-b957-31f002c6ee21 (SEND A SCREENSHOT TO CLAUDE OF THE FOLDER STRUCTURE FIRST)
+
 **Prerequisites**
 
 Before starting, ensure you have the following installed:
