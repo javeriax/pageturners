@@ -79,7 +79,11 @@ Create a .env file here and paste the credentials shared by Javeria.
 Bash
 
 cd ../pageturners-frontend
-npm install
+npm install 
+
+Might need:
+
+npm install react-router-dom
 
 👨‍💻 Workflow & Branching
 
