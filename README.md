@@ -72,9 +72,12 @@ python -m venv venv
 # Activation (Windows): venv\Scripts\activate
 # Activation (Mac/Linux): source venv/bin/activate
 
+# Install all Python dependencies from requirements.txt
 pip install -r requirements.txt
 
 Create a .env file here and paste the credentials shared by Javeria.
+(Note: requirements.txt contains all necessary packages - Flask, pymongo, bcrypt, etc.)
+
 3. Frontend Setup
 Bash
 
@@ -99,6 +102,48 @@ Never commit directly to main. Always work on your own branch:
     Work and Commit: git add . then git commit -m "brief description of work"
 
     Push your branch: git push origin feature-yourname-task
+
+**How to Pull Updates Without Errors**
+
+When pulling latest code from main, follow these steps to avoid conflicts:
+
+Bash
+
+# 1. Make sure you're on main branch
+git checkout main
+
+# 2. Fetch latest updates
+git fetch origin
+
+# 3. Pull updates (does fetch + merge)
+git pull origin main
+
+# 4. If you have local changes, stash them first
+git stash
+
+# 5. Then pull
+git pull origin main
+
+# 6. Restore your changes (optional)
+git stash pop
+
+# 7. Re-install dependencies (important!)
+# Backend
+cd pageturners-backend
+pip install -r requirements.txt
+
+# Frontend  
+cd ../pageturners-frontend
+npm install
+
+**Common Pull Errors & Solutions**
+
+| Error | Solution |
+|-------|----------|
+| "Your local changes would be overwritten" | Run `git stash` before pulling |
+| "Merge conflict" | Edit conflicted files, then `git add .` and `git commit -m "resolve conflicts"` |
+| "Module not found" | Run `npm install` (frontend) or `pip install -r requirements.txt` (backend) |
+| "JSON parsing error" | Delete `node_modules` and `package-lock.json`, then run `npm install` again |
 
 How to Run the Application
 
