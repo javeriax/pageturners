@@ -24,6 +24,20 @@ export default function Register() {
 
     // validationErrors: Stores error messages for each field. Shows below each input when validation fails
     const [validationErrors, setValidationErrors] = useState({});
+
+    // showRequirements: Toggle for showing/hiding password requirements checklist
+    const [showRequirements, setShowRequirements] = useState(false);
+
+    // Helper function to check password requirements
+    const checkPasswordRequirements = (pwd) => {
+        return {
+            hasMinLength: pwd.length >= 8,
+            hasLowercase: /(?=.*[a-z])/.test(pwd),
+            hasUppercase: /(?=.*[A-Z])/.test(pwd),
+            hasNumber: /(?=.*\d)/.test(pwd),
+        };
+    };
+
     // validateForm: Checks all form fields and returns error messages for invalid fields
     // This runs when user clicks Register button
     const validateForm = () => {
@@ -43,8 +57,10 @@ export default function Register() {
         // Check email: must be valid format with @ symbol and domain
         if (!formData.email.trim()) {
             errors.email = 'Email is required';
+        } else if (!formData.email.includes('@')) {
+            errors.email = 'Email must include the @ symbol (e.g., name@example.com)';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            errors.email = 'Please enter a valid email address';
+            errors.email = 'Please enter a valid email address with domain (e.g., name@example.com)';
         }
 
         // Check password: minimum 8 characters and must have uppercase, lowercase and number
@@ -79,8 +95,29 @@ export default function Register() {
             ...prev,
             [name]: value,
         }));
-        // Clear validation error for this field when user starts typing
-        if (validationErrors[name]) {
+
+        // Real-time validation for email
+        if (name === 'email' && value.trim()) {
+            const emailError = {};
+            if (!value.includes('@')) {
+                emailError.email = 'Email must include the @ symbol (e.g., name@example.com)';
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                emailError.email = 'Please enter a valid email address with domain (e.g., name@example.com)';
+            }
+
+            if (emailError.email) {
+                setValidationErrors((prev) => ({
+                    ...prev,
+                    email: emailError.email,
+                }));
+            } else {
+                setValidationErrors((prev) => ({
+                    ...prev,
+                    email: '',
+                }));
+            }
+        } else if (validationErrors[name]) {
+            // Clear validation error for other fields when user starts typing
             setValidationErrors((prev) => ({
                 ...prev,
                 [name]: '',
@@ -142,7 +179,7 @@ export default function Register() {
                 <div className="logo-section">
                     <div className="logo-icon">
                         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            {/* Book icon - minimalistic design */}
+                            {/* ICON */}
                             <defs>
                                 <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
@@ -183,14 +220,14 @@ export default function Register() {
                 <form onSubmit={handleSubmit} className="auth-form">
                     {/* Email Field */}
                     <div className="form-group">
-                        <label htmlFor="email">Please Enter Your Email</label>
+                        <label htmlFor="email">Email</label>
                         <input
                             type="email"
                             id="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="Enter your email"
+                            placeholder="name@example.com"
                             disabled={loading}
                             className={validationErrors.email ? 'input-error' : ''}
                             data-testid="email-input"
@@ -204,14 +241,25 @@ export default function Register() {
 
                     {/* Password Field */}
                     <div className="form-group">
-                        <label htmlFor="password">Please Enter Your Password</label>
+                        <div className="password-label-section">
+                            <label htmlFor="password">Password</label>
+                            <button
+                                type="button"
+                                className="requirements-toggle"
+                                onClick={() => setShowRequirements(!showRequirements)}
+                                aria-expanded={showRequirements}
+                            >
+                                <span className={`toggle-icon ${showRequirements ? 'open' : ''}`}>▶</span>
+                                Requirements
+                            </button>
+                        </div>
                         <input
                             type="password"
                             id="password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            placeholder="minimum 8 characters"
+                            // placeholder="minimum 8 characters"
                             disabled={loading}
                             className={validationErrors.password ? 'input-error' : ''}
                             data-testid="password-input"
@@ -220,6 +268,28 @@ export default function Register() {
                             <p className="field-error" role="alert">
                                 {validationErrors.password}
                             </p>
+                        )}
+
+                        {/* Collapsible Requirements Checklist */}
+                        {showRequirements && (
+                            <div className="requirements-checklist">
+                                <div className={`requirement-item ${checkPasswordRequirements(formData.password).hasMinLength ? 'met' : ''}`}>
+                                    <span className="checkmark">✓</span>
+                                    <span>At least 8 characters</span>
+                                </div>
+                                <div className={`requirement-item ${checkPasswordRequirements(formData.password).hasLowercase ? 'met' : ''}`}>
+                                    <span className="checkmark">✓</span>
+                                    <span>One lowercase letter (a-z)</span>
+                                </div>
+                                <div className={`requirement-item ${checkPasswordRequirements(formData.password).hasUppercase ? 'met' : ''}`}>
+                                    <span className="checkmark">✓</span>
+                                    <span>One uppercase letter (A-Z)</span>
+                                </div>
+                                <div className={`requirement-item ${checkPasswordRequirements(formData.password).hasNumber ? 'met' : ''}`}>
+                                    <span className="checkmark">✓</span>
+                                    <span>One number (0-9)</span>
+                                </div>
+                            </div>
                         )}
                     </div>
 
@@ -232,7 +302,7 @@ export default function Register() {
                             name="confirmPassword"
                             value={formData.confirmPassword}
                             onChange={handleChange}
-                            placeholder="Enter password"
+                            // placeholder="Enter password"
                             disabled={loading}
                             className={validationErrors.confirmPassword ? 'input-error' : ''}
                             data-testid="confirm-password-input"
@@ -246,14 +316,14 @@ export default function Register() {
 
                     {/* Username Field */}
                     <div className="form-group">
-                        <label htmlFor="username">Enter A Username</label>
+                        <label htmlFor="username">Username</label>
                         <input
                             type="text"
                             id="username"
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
-                            placeholder="Enter username"
+                            // placeholder="Enter username"
                             disabled={loading}
                             className={validationErrors.username ? 'input-error' : ''}
                             data-testid="username-input"

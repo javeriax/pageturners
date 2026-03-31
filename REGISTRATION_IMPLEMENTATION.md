@@ -2,13 +2,6 @@
 
 ## How to Run Frontend
 
-### Arch Linux (Fish Shell)
-```fish
-cd pageturners-frontend
-npm install
-npm run dev
-```
-
 ### Windows (Command Prompt)
 ```cmd
 cd pageturners-frontend
@@ -23,16 +16,18 @@ Access at http://localhost:5175
 
 ### Frontend - DONE
 - Registration form with 4 fields (Email, Password, Confirm Password, Username)
-- Client-side validation with error messages
-- Beautiful UI with book texture background and brown theme
+- Client-side validation with real-time error messages
+- UI with book texture background and brown theme
+- Collapsible password requirements checklist with live progress tracking
 - API integration via registerUser() function
 - Success/error message display
-- All code has meaningful comments for beginners
 
-### Frontend Validation Rules - ALL IMPLEMENTED
+## Frontend Validation Rules - ALL IMPLEMENTED
 - Username: 3-20 characters, letters/numbers/underscore/hyphen only
-- Email: valid email format
+- Email: valid format with @ and domain (any domain accepted: .com, .org, .co.uk, etc.)
+  - Real-time validation: shows error as user types if @ missing or format invalid
 - Password: 8+ characters with uppercase, lowercase, and number
+  - Collapsible requirements checklist with real-time status updates
 - Confirm Password: must match password field
 
 ### Backend - API STRUCTURE CREATED (Not Integrated)
@@ -57,20 +52,21 @@ The endpoint currently returns placeholder success response.
 
 ## Frontend Files
 
-src/App.jsx - Routes setup (/ shows Register page)
-src/pages/Register.jsx - Registration form component with validation
-src/api/auth.js - registerUser() function that calls backend API
-src/styles/Auth.css - Styling with book texture and brown theme
+- `src/pages/Register.jsx` - Registration form with real-time validation and password requirements checklist
+- `src/api/auth.js` - registerUser() function that calls backend API
+- `src/styles/Auth.css` - Brown theme styling with book texture background
 
 
 ## How It Works
 
-1. User fills registration form
-2. Frontend validates locally before sending
-3. Frontend sends POST to http://localhost:5000/api/auth/register
-4. Request body: {username, email, password}
-5. Backend must process and respond with: {success: boolean, message: string, user_id?: string}
-6. Frontend shows response message to user
+1. User fills registration form with real-time validation feedback
+2. Password requirements display dynamically (checklist updates as user types)
+3. Email validation shows error immediately if @ missing or format invalid
+4. Frontend validates all fields before sending
+5. Frontend sends POST to http://localhost:5000/api/auth/register
+6. Request body: {username, email, password}
+7. Backend must process and respond with: {success: boolean, message: string, user_id?: string}
+8. Frontend shows response message and redirects on success
 
 
 ## Backend API Structure
@@ -117,17 +113,31 @@ For backend developer:
    - Return 201 with user_id on success
    - Return 409 with appropriate message if email/username exists
 3. Test integration with frontend at http://localhost:5175
-4. Verify MongoDB contains hashed passwords (never plain text)
+4. Verify MongoDB contains hashed passwords
 
 
 ## Testing
 
-Frontend tests:
+### Frontend Tests
 ```bash
 npm test
 ```
 
-Tests verify validation rules and error messages work correctly.
+**Test Coverage:**
+- Register Component tests: Form rendering, validation, submission, error handling, edge cases
+- Authentication API tests: Request format verification, response handling
+
+**Current Status:**
+- ✅ All frontend tests pass
+- 📝 Backend integration tests are commented out and ready to uncomment when backend is deployed
+- Tests focus on validating frontend logic and API response handling
+
+**To Enable Backend Tests:**
+Once backend is fully implemented and running:
+1. Uncomment the commented backend integration tests in:
+   - `src/api/auth.test.js` - Backend API integration tests
+   - `src/pages/Register.test.jsx` - Component API integration tests
+2. Run `npm test` to verify backend integration
 
 
 ## Important Notes

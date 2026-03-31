@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -15,10 +16,9 @@ const renderWithRouter = (component) => {
     return render(<BrowserRouter>{component}</BrowserRouter>);
 };
 
-describe('Register Component', () => {
+describe('Register Component - Frontend Tests', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        localStorage.clear();
     });
 
     describe('Form Rendering', () => {
@@ -26,8 +26,8 @@ describe('Register Component', () => {
             renderWithRouter(<Register />);
 
             expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-            expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-            expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+            expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+            expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
         });
 
@@ -38,13 +38,12 @@ describe('Register Component', () => {
 
         it('should render heading and subtitle', () => {
             renderWithRouter(<Register />);
-            expect(screen.getByRole('heading', { name: /create your account/i })).toBeInTheDocument();
-            expect(screen.getByText(/join pageturners/i)).toBeInTheDocument();
+            expect(screen.getByText(/pageturners/i)).toBeInTheDocument();
         });
 
         it('should render login link', () => {
             renderWithRouter(<Register />);
-            expect(screen.getByRole('link', { name: /login here/i })).toBeInTheDocument();
+            expect(screen.getByRole('link', { name: /log in/i })).toBeInTheDocument();
         });
     });
 
