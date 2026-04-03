@@ -1,5 +1,5 @@
-// API_BASE_URL: Backend server address. All API calls go to http://localhost:5000/api
-const API_BASE_URL = 'http://localhost:5000/api';
+// API_BASE_URL: Backend server address. All API calls go to http://localhost:5001/api
+const API_BASE_URL = 'http://localhost:5001/api';
 
 // registerUser: Sends registration data to backend
 // Takes username, email and password from form
@@ -56,7 +56,7 @@ export const verifyEmail = async (email, code) => {
             },
             body: JSON.stringify({
                 email,
-                code,
+                verification_code: code,
             }),
         });
 
