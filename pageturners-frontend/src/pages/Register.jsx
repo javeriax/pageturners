@@ -1,34 +1,22 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Using modern navigate
 import { registerUser } from '../api/auth';
 import '../styles/Auth.css';
 
-// Register component for user registration
-// This component handles the registration form with validation and API integration
 export default function Register() {
-    // loading: True when form is being submitted to backend. Used to disable button and show loading state
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-
-    // error: Stores general error messages from API (like "Email already registered")
     const [error, setError] = useState('');
-
-    // success: Stores success message after successful registration
     const [success, setSuccess] = useState('');
-
-    // formData: Stores all form field values. Each field updates this object as user types
     const [formData, setFormData] = useState({
         username: '',
         email: '',
         password: '',
         confirmPassword: '',
     });
-
-    // validationErrors: Stores error messages for each field. Shows below each input when validation fails
     const [validationErrors, setValidationErrors] = useState({});
-
-    // showRequirements: Toggle for showing/hiding password requirements checklist
     const [showRequirements, setShowRequirements] = useState(false);
 
-    // Helper function to check password requirements
     const checkPasswordRequirements = (pwd) => {
         return {
             hasMinLength: pwd.length >= 8,
@@ -38,32 +26,30 @@ export default function Register() {
         };
     };
 
-    // validateForm: Checks all form fields and returns error messages for invalid fields
-    // This runs when user clicks Register button
     const validateForm = () => {
         const errors = {};
+        const rawUsername = formData.username;
+        const trimmedUsername = rawUsername.trim();
 
-        // Check username: must have 3-20 characters and only letters/numbers/_/-
-        if (!formData.username.trim()) {
+        // 1. Username Validation (Exact strings for tests)
+        if (!trimmedUsername) {
             errors.username = 'Username is required';
-        } else if (formData.username.trim().length < 3) {
+        } else if (trimmedUsername.length < 3) {
             errors.username = 'Username must be at least 3 characters';
-        } else if (formData.username.trim().length > 20) {
+        } else if (trimmedUsername.length > 20) {
             errors.username = 'Username cannot exceed 20 characters';
-        } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
+        } else if (!/^[a-zA-Z0-9_-]+$/.test(rawUsername)) {
             errors.username = 'Username can only contain letters, numbers, underscores, and hyphens';
         }
 
-        // Check email: must be valid format with @ symbol and domain
+        // 2. Email Validation
         if (!formData.email.trim()) {
             errors.email = 'Email is required';
-        } else if (!formData.email.includes('@')) {
-            errors.email = 'Email must include the @ symbol (e.g., name@example.com)';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            errors.email = 'Please enter a valid email address with domain (e.g., name@example.com)';
+            errors.email = 'Please enter a valid email address';
         }
 
-        // Check password: minimum 8 characters and must have uppercase, lowercase and number
+        // 3. Password Validation
         if (!formData.password) {
             errors.password = 'Password is required';
         } else if (formData.password.length < 8) {
@@ -76,7 +62,7 @@ export default function Register() {
             errors.password = 'Password must contain at least one number';
         }
 
-        // Check confirm password: must match password field
+        // 4. Confirm Password
         if (!formData.confirmPassword) {
             errors.confirmPassword = 'Please confirm your password';
         } else if (formData.password !== formData.confirmPassword) {
@@ -86,54 +72,20 @@ export default function Register() {
         return errors;
     };
 
-    /**
-     * Handle input changes
-     */
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
 
-        // Real-time validation for email
-        if (name === 'email' && value.trim()) {
-            const emailError = {};
-            if (!value.includes('@')) {
-                emailError.email = 'Email must include the @ symbol (e.g., name@example.com)';
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                emailError.email = 'Please enter a valid email address with domain (e.g., name@example.com)';
-            }
-
-            if (emailError.email) {
-                setValidationErrors((prev) => ({
-                    ...prev,
-                    email: emailError.email,
-                }));
-            } else {
-                setValidationErrors((prev) => ({
-                    ...prev,
-                    email: '',
-                }));
-            }
-        } else if (validationErrors[name]) {
-            // Clear validation error for other fields when user starts typing
-            setValidationErrors((prev) => ({
-                ...prev,
-                [name]: '',
-            }));
+        if (validationErrors[name]) {
+            setValidationErrors((prev) => ({ ...prev, [name]: '' }));
         }
     };
 
-    /**
-     * Handle form submission
-     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
 
-        // Validate form
         const errors = validateForm();
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);
@@ -143,24 +95,15 @@ export default function Register() {
         setLoading(true);
 
         try {
-            const result = await registerUser(
-                formData.username,
-                formData.email,
-                formData.password
-            );
+            const result = await registerUser(formData.username, formData.email, formData.password);
 
             if (result.success) {
                 setSuccess(result.message);
-                setFormData({
-                    username: '',
-                    email: '',
-                    password: '',
-                    confirmPassword: '',
-                });
-                // Redirect after 2 seconds
+                const userEmail = formData.email;
+                setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+
                 setTimeout(() => {
-                    // Redirect to verification page or home
-                    window.location.href = '/';
+                    navigate('/verify-email', { state: { email: userEmail } });
                 }, 2000);
             } else {
                 setError(result.message);
@@ -175,71 +118,43 @@ export default function Register() {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                {/* Logo */}
                 <div className="logo-section">
                     <div className="logo-icon">
                         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            {/* ICON */}
                             <defs>
                                 <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
                                     <stop offset="100%" style={{ stopColor: '#5a4a42', stopOpacity: 1 }} />
                                 </linearGradient>
                             </defs>
-                            {/* Open book pages */}
                             <path d="M 30 25 L 30 75 Q 50 70 50 50 Q 50 70 70 75 L 70 25 Q 50 30 50 50 Q 50 30 30 25" fill="url(#bookGradient)" />
-                            {/* Book spine */}
                             <rect x="48" y="20" width="4" height="60" fill="#4a3a32" opacity="0.3" />
-                            {/* Pages highlight */}
                             <path d="M 32 28 Q 50 32 50 50 Q 50 32 68 28" stroke="rgba(255,255,255,0.3)" strokeWidth="1" fill="none" />
                         </svg>
                     </div>
                     <h1>PageTurners</h1>
                 </div>
 
-                {/* Success Message */}
-                {success && (
-                    <div className="message success-message" role="alert">
-                        <span className="message-icon">✓</span>
-                        <div>
-                            <p>{success}</p>
-                        </div>
-                    </div>
-                )}
+                {success && <div className="message success-message"><p>{success}</p></div>}
+                {error && <div className="message error-message"><p>{error}</p></div>}
 
-                {/* Error Message */}
-                {error && (
-                    <div className="message error-message" role="alert">
-                        <span className="message-icon">✕</span>
-                        <div>
-                            <p>{error}</p>
-                        </div>
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="auth-form">
-                    {/* Email Field */}
+                <form onSubmit={handleSubmit} className="auth-form" noValidate>
+                    {/* 1. Email Field */}
                     <div className="form-group">
                         <label htmlFor="email">Email</label>
                         <input
-                            type="email"
                             id="email"
+                            type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="name@example.com"
                             disabled={loading}
-                            className={validationErrors.email ? 'input-error' : ''}
                             data-testid="email-input"
                         />
-                        {validationErrors.email && (
-                            <p className="field-error" role="alert">
-                                {validationErrors.email}
-                            </p>
-                        )}
+                        {validationErrors.email && <span className="error-text">{validationErrors.email}</span>}
                     </div>
 
-                    {/* Password Field */}
+                    {/* 2. Password Field */}
                     <div className="form-group">
                         <div className="password-label-section">
                             <label htmlFor="password">Password</label>
@@ -247,111 +162,81 @@ export default function Register() {
                                 type="button"
                                 className="requirements-toggle"
                                 onClick={() => setShowRequirements(!showRequirements)}
-                                aria-expanded={showRequirements}
                             >
                                 <span className={`toggle-icon ${showRequirements ? 'open' : ''}`}>▶</span>
                                 Requirements
                             </button>
                         </div>
                         <input
-                            type="password"
                             id="password"
+                            type="password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            // placeholder="minimum 8 characters"
                             disabled={loading}
-                            className={validationErrors.password ? 'input-error' : ''}
                             data-testid="password-input"
                         />
-                        {validationErrors.password && (
-                            <p className="field-error" role="alert">
-                                {validationErrors.password}
-                            </p>
-                        )}
+                        {validationErrors.password && <span className="error-text">{validationErrors.password}</span>}
 
-                        {/* Collapsible Requirements Checklist */}
                         {showRequirements && (
                             <div className="requirements-checklist">
                                 <div className={`requirement-item ${checkPasswordRequirements(formData.password).hasMinLength ? 'met' : ''}`}>
-                                    <span className="checkmark">✓</span>
-                                    <span>At least 8 characters</span>
+                                    <span className="checkmark">✓</span> <span>At least 8 characters</span>
                                 </div>
                                 <div className={`requirement-item ${checkPasswordRequirements(formData.password).hasLowercase ? 'met' : ''}`}>
-                                    <span className="checkmark">✓</span>
-                                    <span>One lowercase letter (a-z)</span>
+                                    <span className="checkmark">✓</span> <span>One lowercase letter (a-z)</span>
                                 </div>
                                 <div className={`requirement-item ${checkPasswordRequirements(formData.password).hasUppercase ? 'met' : ''}`}>
-                                    <span className="checkmark">✓</span>
-                                    <span>One uppercase letter (A-Z)</span>
+                                    <span className="checkmark">✓</span> <span>One uppercase letter (A-Z)</span>
                                 </div>
                                 <div className={`requirement-item ${checkPasswordRequirements(formData.password).hasNumber ? 'met' : ''}`}>
-                                    <span className="checkmark">✓</span>
-                                    <span>One number (0-9)</span>
+                                    <span className="checkmark">✓</span> <span>One number (0-9)</span>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* Confirm Password Field */}
+                    {/* 3. Confirm Password Field */}
                     <div className="form-group">
                         <label htmlFor="confirmPassword">Confirm Password</label>
                         <input
-                            type="password"
                             id="confirmPassword"
+                            type="password"
                             name="confirmPassword"
                             value={formData.confirmPassword}
                             onChange={handleChange}
-                            // placeholder="Enter password"
                             disabled={loading}
-                            className={validationErrors.confirmPassword ? 'input-error' : ''}
                             data-testid="confirm-password-input"
                         />
-                        {validationErrors.confirmPassword && (
-                            <p className="field-error" role="alert">
-                                {validationErrors.confirmPassword}
-                            </p>
-                        )}
+                        {validationErrors.confirmPassword && <span className="error-text">{validationErrors.confirmPassword}</span>}
                     </div>
 
-                    {/* Username Field */}
+                    {/* 4. Username Field */}
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
                         <input
-                            type="text"
                             id="username"
+                            type="text"
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
-                            // placeholder="Enter username"
                             disabled={loading}
-                            className={validationErrors.username ? 'input-error' : ''}
                             data-testid="username-input"
                         />
-                        {validationErrors.username && (
-                            <p className="field-error" role="alert">
-                                {validationErrors.username}
-                            </p>
-                        )}
+                        {validationErrors.username && <span className="error-text">{validationErrors.username}</span>}
                     </div>
 
-                    {/* Submit Button */}
                     <button
                         type="submit"
                         className="auth-button"
                         disabled={loading}
                         data-testid="register-submit-btn"
                     >
-                        {loading ? 'Registering...' : 'Register'}
+                        {loading ? 'Creating Account...' : 'Register'}
                     </button>
                 </form>
-
-                {/* Login Link */}
                 <p className="auth-footer">
-                    Already have an account?{' '}
-                    <a href="/login" className="auth-link">
-                        Log in
-                    </a>
+                    Already have an account? <a href="/login" className="auth-link">Log in</a>
                 </p>
             </div>
         </div>

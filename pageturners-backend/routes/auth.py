@@ -2,7 +2,7 @@ from flask import Blueprint, request
 import os
 from dotenv import load_dotenv
 import bcrypt
-from datetime import datetime
+from datetime import datetime, timezone # Use timezone-aware objects
 import secrets
 import smtplib
 from email.mime.text import MIMEText
@@ -139,8 +139,11 @@ def register():
             "password": hashed_password,
             "is_verified": False,
             "verification_code": verification_code,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            # "created_at": datetime.utcnow(),
+            # "updated_at": datetime.utcnow()
+            # Replace datetime.utcnow() with:
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         
         # Insert user into database
@@ -170,7 +173,7 @@ def register():
 
 @auth_bp.route('/verify-email', methods=['POST'])
 def verify_email():
-    """Verify user email with verification code"""
+    """Verify user email with specific feedback messages"""
     try:
         data = request.get_json()
         email = data.get('email', '').strip().lower()
@@ -185,20 +188,31 @@ def verify_email():
         from app import db
         users_collection = db["users"]
         
-        # Find user by email and verification code
-        user = users_collection.find_one({
-            "email": email,
-            "verification_code": verification_code,
-            "is_verified": False
-        })
+        # 1. Look for the user by email ONLY first
+        user = users_collection.find_one({"email": email})
         
         if not user:
             return {
                 "success": False,
-                "message": "Invalid verification code or email already verified"
-            }, 401
+                "message": "No account found with this email address."
+            }, 404
+
+        # 2. Check if they are already verified (even if code is missing/wrong)
+        if user.get("is_verified") is True:
+            return {
+                "success": True, 
+                "message": "Email is already verified. You can go to the login page!"
+            }, 200
+
+        # 3. Check if the verification code matches
+        # Note: We use .get() to avoid errors if verification_code was already removed
+        if user.get("verification_code") != verification_code:
+            return {
+                "success": False,
+                "message": "The code you entered is incorrect. Please check your email."
+            }, 400
         
-        # Update user to verified
+        # 4. If we reach this point, everything is correct! Update the user.
         users_collection.update_one(
             {"_id": user["_id"]},
             {
@@ -206,20 +220,18 @@ def verify_email():
                     "is_verified": True,
                     "updated_at": datetime.utcnow()
                 },
-                "$unset": {"verification_code": ""}
+                "$unset": {"verification_code": ""} 
             }
         )
         
         return {
             "success": True,
-            "message": "Email verified successfully. You can now log in."
+            "message": "Email verified successfully! You can now log in."
         }, 200
         
     except Exception as e:
         print(f"Email verification error: {e}")
-        import traceback
-        traceback.print_exc()
         return {
             "success": False,
-            "message": "An error occurred during verification"
+            "message": "A server error occurred. Please try again."
         }, 500
