@@ -167,7 +167,6 @@ def register():
         traceback.print_exc()
         return {
             "success": False,
-<<<<<<< HEAD
        "message": "An error occurred during registration"
         }, 500
 
