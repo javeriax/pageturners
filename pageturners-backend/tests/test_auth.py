@@ -19,7 +19,7 @@ def mock_db(monkeypatch):
     monkeypatch.setattr("app.db", mock_database)
     return mock_database
 
-# TC-AM-01: New User Registration [cite: 117]
+# TC-AM-01: New User Registration 
 def test_register_success(client, mock_db):
     payload = {
         "username": "testuser",
@@ -34,7 +34,7 @@ def test_register_success(client, mock_db):
     # Verify user details are stored in the database [cite: 117]
     assert mock_db.users.find_one({"email": "test@example.com"}) is not None
 
-# TC-AM-02: Duplicate Email Validation [cite: 117]
+# TC-AM-02: Duplicate Email Validation
 def test_register_duplicate_email(client, mock_db):
     # Pre-insert an existing user [cite: 117]
     mock_db.users.insert_one({"email": "existing@example.com", "username": "olduser"})
@@ -45,9 +45,36 @@ def test_register_duplicate_email(client, mock_db):
         "password": "Password123"
     }
     response = client.post('/api/auth/register', json=payload)
-    # System should display email already registered [cite: 117]
+    # System should display email already registered 
     assert response.status_code == 409
     assert response.get_json()["message"] == "Email already registered"
+
+#LOGIN TESTS
+# TC-AM-03: Login Of Registered User
+def test_login_success(client, mock_db):
+    import bcrypt
+    # Pre-insert a verified user with hashed password
+    hashed = bcrypt.hashpw("Password123".encode('utf-8'), bcrypt.gensalt())
+    mock_db.users.insert_one({
+        "username": "testuser",
+        "email": "test@example.com",
+        "password": hashed,
+        "is_verified": True
+    })
+
+    payload = {
+        "email": "test@example.com",
+        "password": "Password123"
+    }
+    # User should be authenticated and JWT token issued
+    response = client.post('/api/auth/login', json=payload)
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["success"] is True
+    assert "token" in data
+    # TC-API-01: Verify token is valid JWT format (3 parts)
+    assert len(data["token"].split(".")) == 3
 
 # TC-AM-04: Invalid Login Attempt 
 def test_invalid_login_attempt(client, mock_db):
@@ -60,7 +87,24 @@ def test_invalid_login_attempt(client, mock_db):
     # Depending on your implementation, this may return 401 or 404
     assert response.status_code in [401, 404]
 
-# TC-AM-10: Email Verification After Registration [cite: 124]
+# TC-PL-07: Duplicate Book in Library 
+def test_duplicate_book_in_library(client, mock_db):
+    # Pre-insert a book into the user's library 
+    mock_db.library.insert_one({
+        "user_email": "test@example.com",
+        "book_id": "b001"
+    })
+    
+    payload = {"book_id": "b001"}
+    # Note: In a real test, you would need to provide a JWT token for the user
+    response = client.post('/api/library/add', json=payload)
+    
+    # System should prevent adding a book that already exists 
+    if response.status_code == 409:
+        assert response.get_json()["message"] == "Book already in your library"
+
+
+# TC-AM-10: Email Verification After Registration 
 def test_verify_email_success(client, mock_db):
     mock_db.users.insert_one({
         "email": "verify@example.com",
@@ -79,26 +123,28 @@ def test_verify_email_success(client, mock_db):
     # Account must be marked as verified in the database [cite: 124]
     assert user["is_verified"] is True
 
-# TC-PL-07: Duplicate Book in Library 
-def test_duplicate_book_in_library(client, mock_db):
-    # Pre-insert a book into the user's library 
-    mock_db.library.insert_one({
-        "user_email": "test@example.com",
-        "book_id": "b001"
+# TC-API-01: Login API Response Validation
+def test_login_returns_valid_jwt_token(client, mock_db):
+    import bcrypt
+    # Pre-insert a verified user with hashed password
+    hashed = bcrypt.hashpw("Password123".encode('utf-8'), bcrypt.gensalt())
+    mock_db.users.insert_one({
+        "username": "bushra",
+        "email": "bushraa.sadaf@gmail.com",
+        "password": hashed,
+        "is_verified": True
     })
-    
-    payload = {"book_id": "b001"}
-    # Note: In a real test, you would need to provide a JWT token for the user
-    response = client.post('/api/library/add', json=payload)
-    
-    # System should prevent adding a book that already exists 
-    if response.status_code == 409:
-        assert response.get_json()["message"] == "Book already in your library"
 
-# # TC-API-02: Protected API Access Without Token 
-# def test_protected_route_unauthorized(client):
-#     # Per your Test Plan, /api/dashboard is the target for unauthorized access 
-#     response = client.get('/api/dashboard') 
-    
-#     # Expected result is 401 unauthorized 
-#     assert response.status_code == 401
+    payload = {
+        "email": "bushraa.sadaf@gmail.com",
+        "password": "Password123"
+    }
+    response = client.post('/api/auth/login', json=payload)
+    data = response.get_json()
+
+    # TC-API-01: API returns 200 OK with valid JWT token
+    assert response.status_code == 200
+    assert "token" in data
+    # Valid JWT has exactly 3 parts separated by dots
+    parts = data["token"].split(".")
+    assert len(parts) == 3

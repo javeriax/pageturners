@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { loginUser } from '../api/auth';
+import { useRef } from 'react';
+import React from 'react';
 import '../styles/Auth.css';
 
 // Login component for user authentication
@@ -19,7 +21,9 @@ export default function Login() {
 
     // validationErrors: Stores error messages for each field. Shows below each input when validation fails
     const [validationErrors, setValidationErrors] = useState({});
-
+    //used useRef to create a synchronous submission 
+    // lock that prevents duplicate API calls during rapid user interactions.
+    const isSubmitting = useRef(false);
     // validateForm: Checks all form fields and returns error messages for invalid fields
     // This runs when user clicks Login button
     const validateForm = () => {
@@ -66,11 +70,14 @@ export default function Login() {
      */
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting.current) return;
+        isSubmitting.current = true;
         setError('');
 
         // Validate form
         const errors = validateForm();
         if (Object.keys(errors).length > 0) {
+            isSubmitting.current = false;
             setValidationErrors(errors);
             return;
         }
@@ -93,6 +100,7 @@ export default function Login() {
         } catch (err) {
             setError(err.message || 'An unexpected error occurred');
         } finally {
+            isSubmitting.current = false;
             setLoading(false);
         }
     };

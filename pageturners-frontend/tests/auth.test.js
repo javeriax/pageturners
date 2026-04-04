@@ -10,8 +10,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { registerUser, verifyEmail } from './auth';
-
+import { registerUser, verifyEmail } from '../src/api/auth';
+import { registerUser, verifyEmail, loginUser } from '../src/api/auth';
 // Mock fetch for testing API calls without actual network requests
 global.fetch = vi.fn();
 
@@ -175,3 +175,89 @@ describe('Authentication API Functions - Frontend Tests', () => {
         });
     });
 });
+
+
+//LOGIN TESTS:
+
+describe('loginUser', () => {
+    /**
+     * PASSING TEST - Frontend Only
+     *
+     * Tests that loginUser() formats the API request correctly.
+     * Verifies endpoint URL, HTTP method, headers, and request body.
+     * No backend dependency - uses mocked fetch.
+     */
+    it('should send login request with correct format', async () => {
+        const mockResponse = {
+            success: true,
+            message: 'Login successful',
+            token: 'header.payload.signature',
+        };
+ 
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockResponse,
+        });
+ 
+        await loginUser('test@example.com', 'Password123');
+ 
+        expect(global.fetch).toHaveBeenCalledWith(
+            'http://localhost:5001/api/auth/login',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: 'test@example.com',
+                    password: 'Password123',
+                }),
+            }
+        );
+    });
+ 
+    /**
+     * PASSING TEST - Frontend Only
+     * TC-AM-04: Tests that loginUser() returns error when credentials are invalid.
+     * Verifies that a 401 response is handled and error message returned correctly.
+     */
+    it('should return error response on invalid credentials', async () => {
+        const mockResponse = {
+            success: false,
+            message: 'Invalid email or password',
+        };
+ 
+        global.fetch.mockResolvedValueOnce({
+            ok: false,
+            json: async () => mockResponse,
+        });
+ 
+        const result = await loginUser('wrong@example.com', 'WrongPassword123');
+ 
+        expect(result.success).toBe(false);
+        expect(result.message).toContain('Invalid email or password');
+    });
+ 
+    /**
+     * PASSING TEST - Frontend Only
+     * TC-AM-03, TC-API-01: Tests that loginUser() returns success and JWT token
+     * when valid credentials are provided. Verifies token is included in response.
+     */
+    it('should return success response with token on valid credentials', async () => {
+        const mockResponse = {
+            success: true,
+            message: 'Login successful',
+            token: 'header.payload.signature',
+        };
+ 
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockResponse,
+        });
+ 
+        const result = await loginUser('test@example.com', 'Password123');
+ 
+        expect(result.success).toBe(true);
+        expect(result.token).toBe('header.payload.signature');
+        expect(result.message).toBe('Login successful');
+    });
+});
+ 

@@ -1,14 +1,14 @@
 import React from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
-import Register from '../pages/Register';
-import * as authApi from '../api/auth';
+import Register from '../src/pages/Register';
+import * as authApi from '../src/api/auth';
 
-// Mock the auth API
-vi.mock('../api/auth', () => ({
+vi.mock('../src/api/auth', () => ({
     registerUser: vi.fn(),
+    loginUser: vi.fn(),
+    verifyEmail: vi.fn(),
 }));
 
 // Helper function to render with Router
