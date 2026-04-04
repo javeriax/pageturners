@@ -36,3 +36,8 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+
+#ignore peak_db.py and the txt files created by it
+peak_db.py
+database_dump.txt

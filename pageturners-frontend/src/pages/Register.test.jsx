@@ -27,7 +27,7 @@ describe('Register Component - Frontend Tests', () => {
 
             expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-            expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+            expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
         });
 
