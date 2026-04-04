@@ -77,3 +77,45 @@ export const verifyEmail = async (email, code) => {
         };
     }
 };
+
+// loginUser: Sends login credentials to backend
+// Takes email and password from form
+// Backend verifies credentials and returns JWT token
+// Returns {success: true/false, message: "error or success message", token: "JWT token"}
+export const loginUser = async (email, password) => {
+    try {
+        // Send POST request to backend /api/auth/login endpoint
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email,
+                password,
+            }),
+        });
+
+        // Parse response from backend
+        const data = await response.json();
+
+        // Check if request was successful (status 200-299 range)
+        if (!response.ok) {
+            throw new Error(data.message || 'Login failed');
+        }
+
+        // Return success message and token to frontend
+        return {
+            success: true,
+            message: data.message || 'Login successful',
+            token: data.token,
+            data,
+        };
+    } catch (error) {
+        // Return error message if something went wrong
+        return {
+            success: false,
+            message: error.message || 'An error occurred during login',
+        };
+    }
+};
