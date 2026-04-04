@@ -167,7 +167,8 @@ def register():
         traceback.print_exc()
         return {
             "success": False,
-            "message": "An error occurred during registration"
+<<<<<<< HEAD
+       "message": "An error occurred during registration"
         }, 500
 
 
@@ -188,7 +189,6 @@ def verify_email():
         from app import db
         users_collection = db["users"]
         
-        # 1. Look for the user by email ONLY first
         user = users_collection.find_one({"email": email})
         
         if not user:
@@ -197,22 +197,18 @@ def verify_email():
                 "message": "No account found with this email address."
             }, 404
 
-        # 2. Check if they are already verified (even if code is missing/wrong)
         if user.get("is_verified") is True:
             return {
                 "success": True, 
                 "message": "Email is already verified. You can go to the login page!"
             }, 200
 
-        # 3. Check if the verification code matches
-        # Note: We use .get() to avoid errors if verification_code was already removed
         if user.get("verification_code") != verification_code:
             return {
                 "success": False,
                 "message": "The code you entered is incorrect. Please check your email."
             }, 400
         
-        # 4. If we reach this point, everything is correct! Update the user.
         users_collection.update_one(
             {"_id": user["_id"]},
             {
@@ -235,3 +231,43 @@ def verify_email():
             "success": False,
             "message": "A server error occurred. Please try again."
         }, 500
+
+
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    from app import db
+    from flask_jwt_extended import create_access_token
+    import bcrypt
+
+    data = request.get_json()
+
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '').strip()
+
+    if not email or not password:
+        return {
+            "success": False,
+            "message": "Email and password are required"
+        }, 400
+
+    user = db.users.find_one({"email": email})
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Invalid email or password"
+        }, 401
+
+    if not bcrypt.checkpw(password.encode('utf-8'), user['password']):
+        return {
+            "success": False,
+            "message": "Invalid email or password"
+        }, 401
+
+    token = create_access_token(identity=str(user['_id']))
+
+    return {
+        "success": True,
+        "message": "Login successful",
+        "token": token
+    }, 200

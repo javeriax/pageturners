@@ -31,13 +31,13 @@ echo -e "${BLUE}Starting Backend (Flask)...${NC}"
 cd pageturners-backend
 
 
-# # Ensure venv is activated
-# source venv/bin/activate
-# # Run Flask in background
-# python3 app.py &
+# Ensure venv is activated
+source venv/bin/activate
+# Run Flask in background
+python3 app.py &
 
 # FOR LINUX: skip 'source' and call the venv python directly for Arch/Fish compatibility
-./venv/bin/python app.py &
+# ./venv/bin/python app.py &
 
 BACKEND_PID=$!
 cd ..
