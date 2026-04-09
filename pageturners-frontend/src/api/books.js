@@ -32,7 +32,7 @@ export const searchBooks = async (search = '', genres = [], page = 1, limit = 12
         params.append('page', page);
         params.append('limit', limit);
 
-        const response = await fetch(`${API_BASE}/books?${params.toString()}`, {
+        const response = await fetch(`${API_BASE}/books/?${params.toString()}`, {
             method: 'GET',
             headers: authHeader()
         });
