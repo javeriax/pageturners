@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Register from './pages/Register';
 import Login from './pages/Login';
 import VerifyEmail from './pages/VerifyEmail';
-import Dashboard from './pages/Dashboard'; // import the new dashboard component
-
+import Dashboard from './pages/Dashboard'; // import the dashboard component
+import BookDetails from './pages/BookDetails'; //the bookdetails compoenent
 /**
  * ProtectedRoute: Checks if a JWT token exists in local storage.
  * If no token is found, it redirects the user to the login page.
@@ -30,9 +30,16 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmail />} />
 
           {/* Protected Routes */}
+         
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+         
+          <Route path="/book/:id" element={
+            <ProtectedRoute>
+              <BookDetails />
             </ProtectedRoute>
           } />
         </Routes>

@@ -3,11 +3,13 @@
 // shows 3 featured book rows each displaying 5 books at a time
 // genre filter is a searchable dropdown on the right side
 // search works in real time - no search button needed
+
 import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchBooks, getInitialBooks, getGenres } from '../api/books';
 import '../styles/Dashboard.css';
+import BookCard from '../components/BookCard';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -255,9 +257,7 @@ export default function Dashboard() {
     };
 
 
-    // navigate to book details on card click
-    const handleBookClick = (bookId) => navigate(`/books/${bookId}`);
-
+  
     // genres filtered and sorted: Selected > Exact Match > Starts With > Alpha
     const filteredGenres = availableGenres
         .filter(genre => {
@@ -317,45 +317,6 @@ export default function Dashboard() {
     };
 
 
-    // single book card component used in both rows and grid
-    const BookCard = ({ book }) => (
-        <div
-            className="book-card"
-            onClick={() => handleBookClick(book.book_id)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && handleBookClick(book.book_id)}
-            aria-label={`View details for ${book.title}`}
-        >
-            <div className="book-cover-wrapper">
-                {book.cover_image ? (
-                    <img
-                        src={book.cover_image}
-                        alt={`Cover of ${book.title}`}
-                        className="book-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                            // show placeholder if cover fails to load
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                        }}
-                    />
-                ) : null}
-                <div
-                    className="book-cover-placeholder"
-                    style={{ display: book.cover_image ? 'none' : 'flex' }}
-                >
-                    <span className="placeholder-icon">📖</span>
-                </div>
-            </div>
-            <div className="book-info">
-                <p className="book-title">{book.title}</p>
-                <p className="book-author">{book.author_name}</p>
-            </div>
-        </div>
-    );
-
-
     // horizontal scrollable genre row - shows 5 books at a time
     const GenreRow = ({ genre, books }) => {
         const rowRef = useRef(null);
@@ -404,7 +365,7 @@ export default function Dashboard() {
     return (
         <div className="dashboard">
 
-            {/* sticky top header - beige background */}
+            {/*  beige background */}
             <header className="dashboard-header">
                 <div className="header-logo">
                     <span className="logo-icon">📚</span>
@@ -422,7 +383,7 @@ export default function Dashboard() {
                 </nav>
             </header>
 
-            {/* sticky search bar - slightly darker beige strip */}
+            {/* slightly darker beige strip */}
             <div className="search-section">
                 <div className="search-bar-row">
 

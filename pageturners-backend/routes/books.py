@@ -18,7 +18,7 @@ def get_db():
         print(f"Database connection error: {e}")
         return None
 
-
+# INITIAL BOOKS ENDPOINT
 @books_bp.route('/initial', methods=['GET'])
 @jwt_required()
 def get_initial_books():
@@ -53,7 +53,7 @@ def get_initial_books():
         print(f"Error fetching initial books: {e}")
         return {"success": False, "message": str(e), "data": {"row1": [], "row2": [], "row3": []}}, 500
 
-
+# GENRES ENDPOINT
 @books_bp.route('/genres', methods=['GET'])
 @jwt_required()
 def get_genres():
@@ -75,6 +75,7 @@ def get_genres():
         return {"success": False, "message": str(e), "data": []}, 500
 
 
+# SEARCH AND FILTER ENDPOINT
 @books_bp.route('/', methods=['GET'])
 @jwt_required()
 def search_books():
@@ -134,6 +135,7 @@ def search_books():
 
 from bson import ObjectId # we need this to search by ID
 
+#BOOK DETAILS ENDPOINT
 @books_bp.route('/<book_id>', methods=['GET'])
 @jwt_required()
 def get_book_details(book_id):
