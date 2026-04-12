@@ -9,14 +9,14 @@ load_dotenv()
 books_bp = Blueprint('books', __name__, url_prefix='/api/books')
 
 # Get database connection
-# def get_db():
-#     try:
-#         client = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=5000)
-#         client.admin.command('ping')
-#         return client["pageturners"]
-#     except Exception as e:
-#         print(f"Database connection error: {e}")
-#         return None
+def get_db():
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=5000)
+        client.admin.command('ping')
+        return client["pageturners"]
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        return None
 
 # INITIAL BOOKS ENDPOINT
 @books_bp.route('/initial', methods=['GET'])
@@ -24,7 +24,7 @@ books_bp = Blueprint('books', __name__, url_prefix='/api/books')
 def get_initial_books():
     """Fetch initial 3 rows of books for dashboard"""
     try:
-        db = current_app.db
+        db = get_db()
         if db is None:
             return {"success": False, "message": "Database connection failed"}, 500
         
@@ -59,7 +59,7 @@ def get_initial_books():
 def get_genres():
     """Fetch all available genres"""
     try:
-        db = current_app.db
+        db = get_db()
         if db is None:
             return {"success": False, "message": "Database connection failed"}, 500
         
@@ -81,7 +81,7 @@ def get_genres():
 def search_books():
     """Search and filter books"""
     try:
-        db = current_app.db
+        db = get_db()
         if db is None:
             return {"success": False, "message": "Database connection failed"}, 500
         
@@ -140,7 +140,7 @@ from bson import ObjectId # we need this to search by ID
 @jwt_required()
 def get_book_details(book_id):
     try:
-        db = current_app.db
+        db = get_db()
         if db is None:
             return {"success": False, "message": "Database connection failed"}, 500
         
@@ -151,18 +151,8 @@ def get_book_details(book_id):
             return {"success": False, "message": "Book not found"}, 404
             
         # Fetch reviews for this book from the reviews collection
-        reviews_cursor = db["reviews"].find({"book_id": ObjectId(book_id)})
-        reviews_list = []
-        for review in reviews_cursor:
-            reviews_list.append({
-                "review_id": str(review["_id"]),
-                "username": review.get("username", "Anonymous"),
-                "user_id": str(review["user_id"]),
-                "rating": review.get("rating"),
-                "review_text": review.get("review_text", ""),
-                "created_at": review["created_at"].isoformat() if review.get("created_at") else None
-            })
-        book['reviews'] = reviews_list
+        reviews = db["reviews"].find({"book_id": ObjectId(book_id)})
+        book['reviews'] = list(reviews)  # Add reviews to the book object
         
         book['_id'] = str(book['_id'])  # Convert ObjectId to string for JSON
         

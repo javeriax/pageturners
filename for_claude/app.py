@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-app = Flask(__name__)
 
+app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 
 # Enable CORS for all routes
@@ -18,14 +18,14 @@ jwt = JWTManager(app)
 # Initialize MongoDB client and database (done once at startup)
 try:
     client = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=5000)
+    # Test connection
     client.admin.command('ping')
-    db = client["pageturners"]  # ✅ client defined first
-    app.db = db
+    db = client["pageturners"]
     print("Connected to MongoDB")
 except Exception as e:
     print(f"Failed to connect to MongoDB: {e}")
-    app.db = None
-    
+    db = None
+
 # Health check endpoint
 @app.route('/api/health', methods=['GET'])
 def health_check():

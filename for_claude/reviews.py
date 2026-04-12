@@ -1,12 +1,24 @@
 from flask import Blueprint, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from pymongo import MongoClient
 from bson import ObjectId
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 reviews_bp = Blueprint('reviews', __name__, url_prefix='/api/books')
 
-
+# Get database connection
+def get_db():
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=5000)
+        client.admin.command('ping')
+        return client["pageturners"]
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        return None
 
 # SUBMIT REVIEW ENDPOINT (KLYRA-82: Create POST endpoint)
 @reviews_bp.route('/<book_id>/reviews', methods=['POST'])
@@ -25,7 +37,7 @@ def submit_review(book_id):
         # Get user ID from JWT token (KLYRA-87: JWT authentication check)
         user_id = get_jwt_identity()
         
-        db = current_app.db
+        db = get_db()
         if db is None:
             return {"success": False, "message": "Database connection failed"}, 500
         
@@ -61,21 +73,21 @@ def submit_review(book_id):
             "user_id": ObjectId(user_id),
             "username": username,
             "rating": rating,
-            "book_id": ObjectId(book_id),
             "review_text": review_text,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
-            
         }
         
         # Save review to database (KLYRA-83: Save to database)
         reviews_collection = db["reviews"]
         result = reviews_collection.insert_one(review_document)
-
-
+        
         # Update book's review count and average rating (KLYRA-117: Calculate avg rating)
-        current_reviews = list(reviews_collection.find({"book_id": ObjectId(book_id)}))
+        current_reviews = list(reviews_collection.find({"_id": {"$ne": result.inserted_id}}))
+        
+        # Calculate average rating from all reviews
         all_ratings = [review.get('rating', 0) for review in current_reviews]
+        all_ratings.append(rating)  # Include the new review
         
         avg_rating = sum(all_ratings) / len(all_ratings) if all_ratings else rating
         review_count = len(all_ratings)
@@ -118,7 +130,7 @@ def get_book_reviews(book_id):
     Fetch all reviews for a specific book
     """
     try:
-        db = current_app.db
+        db = get_db()
         if db is None:
             return {"success": False, "message": "Database connection failed"}, 500
         
@@ -145,57 +157,4 @@ def get_book_reviews(book_id):
     
     except Exception as e:
         print(f"Error fetching reviews: {e}")
-        return {"success": False, "message": str(e)}, 500
-    
-# DELETE REVIEW ENDPOINT (KLYRA-71, 72, 73, 74, 75, 76)
-@reviews_bp.route('/<book_id>/reviews/<review_id>', methods=['DELETE'])
-@jwt_required()
-def delete_review(book_id, review_id):
-    try:
-        user_id = get_jwt_identity()
-        db = current_app.db
-
-        reviews_collection = db["reviews"]
-        books_collection = db["books"]
-
-        # Find the review
-        review = reviews_collection.find_one({"_id": ObjectId(review_id)})
-
-        if not review:
-            return {"success": False, "message": "Review not found"}, 404
-
-        # KLYRA-72 & 73: Check ownership
-        if str(review["user_id"]) != str(user_id):
-            return {"success": False, "message": "You can only delete your own reviews"}, 403
-
-        # KLYRA-74: Delete the review
-        reviews_collection.delete_one({"_id": ObjectId(review_id)})
-
-        # KLYRA-75 & 76: Recalculate average rating from remaining reviews
-        remaining_reviews = list(reviews_collection.find({"book_id": ObjectId(book_id)}))
-        
-        if remaining_reviews:
-            all_ratings = [r.get("rating", 0) for r in remaining_reviews]
-            new_avg = round(sum(all_ratings) / len(all_ratings), 1)
-            new_count = len(all_ratings)
-        else:
-            new_avg = 0
-            new_count = 0
-
-        books_collection.update_one(
-            {"_id": ObjectId(book_id)},
-            {"$set": {"avg_rating": new_avg, "review_count": new_count}}
-        )
-
-        return {
-            "success": True,
-            "message": "Review deleted successfully",
-            "data": {
-                "new_avg_rating": new_avg,
-                "review_count": new_count
-            }
-        }, 200
-
-    except Exception as e:
-        print(f"Error deleting review: {e}")
         return {"success": False, "message": str(e)}, 500
