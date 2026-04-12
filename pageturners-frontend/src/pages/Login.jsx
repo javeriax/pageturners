@@ -90,8 +90,8 @@ export default function Login() {
             if (result.success) {
                 // Store JWT token in localStorage for future API calls
                 localStorage.setItem('token', result.token);
-                
-                // Redirect to dashboard
+                // localStorage.setItem('username', data.data?.username || '');
+                // Redirect to  dashboard
                 window.location.href = '/dashboard';
             } else {
                 // Show error message from backend

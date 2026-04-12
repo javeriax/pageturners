@@ -126,3 +126,117 @@ export const getBookDetails = async (bookId) => {
         };
     }
 };
+
+// submitReview: Send user's rating and review to backend
+export const submitReview = async (bookId, rating, reviewText) => {
+    try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            return {
+                success: false,
+                message: 'You must be logged in to submit a review'
+            };
+        }
+        
+        const response = await fetch(`${API_BASE}/books/${bookId}/reviews`, {  // Use API_BASE here
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Send JWT token for authentication
+            },
+            body: JSON.stringify({
+                rating,
+                review_text: reviewText
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to submit review');
+        }
+        
+        return {
+            success: true,
+            message: data.message,
+            data: data.data
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.message || 'An error occurred while submitting your review'
+        };
+    }
+};
+
+// getBookReviews: Fetch all reviews for a book
+export const getBookReviews = async (bookId) => {
+    try {
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`${API_BASE}/books/${bookId}/reviews`, {  // Use API_BASE here
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to fetch reviews');
+        }
+        
+        return {
+            success: true,
+            data: data.data
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.message || 'An error occurred while fetching reviews'
+        };
+    }
+};
+
+
+// deleteReview: Delete the logged-in user's own review
+// KLYRA-65, KLYRA-66, KLYRA-67
+export const deleteReview = async (bookId, reviewId) => {
+    try {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            return {
+                success: false,
+                message: 'You must be logged in to delete a review'
+            };
+        }
+
+        const response = await fetch(`${API_BASE}/books/${bookId}/reviews/${reviewId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to delete review');
+        }
+
+        return {
+            success: true,
+            message: data.message,
+            data: data.data
+        };
+
+    } catch (error) {
+        return {
+            success: false,
+            message: error.message || 'An error occurred while deleting your review'
+        };
+    }
+};
