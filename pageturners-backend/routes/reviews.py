@@ -111,12 +111,46 @@ def submit_review(book_id):
 
 
 # GET REVIEWS ENDPOINT (KLYRA-85: Fetch reviews for a book)
+# @reviews_bp.route('/<book_id>/reviews', methods=['GET'])
+# @jwt_required()
+# def get_book_reviews(book_id):
+#     """
+#     Fetch all reviews for a specific book
+#     """
+#     try:
+#         db = current_app.db
+#         if db is None:
+#             return {"success": False, "message": "Database connection failed"}, 500
+        
+#         # Check if book exists
+#         books_collection = db["books"]
+#         book = books_collection.find_one({"_id": ObjectId(book_id)})
+        
+#         if not book:
+#             return {"success": False, "message": "Book not found"}, 404
+        
+#         # Fetch all reviews for this book
+#         reviews_collection = db["reviews"]
+#         # This is simplified - in real app, reviews should have book_id field
+#         # For now, we'll assume reviews are linked by querying
+        
+#         return {
+#             "success": True,
+#             "data": {
+#                 "avg_rating": book.get('avg_rating', 0),
+#                 "review_count": book.get('review_count', 0),
+#                 "reviews": book.get('reviews', [])
+#             }
+#         }, 200
+    
+#     except Exception as e:
+#         print(f"Error fetching reviews: {e}")
+#         return {"success": False, "message": str(e)}, 500
+    
 @reviews_bp.route('/<book_id>/reviews', methods=['GET'])
 @jwt_required()
 def get_book_reviews(book_id):
-    """
-    Fetch all reviews for a specific book
-    """
+    """Fetch all reviews for a specific book"""
     try:
         db = current_app.db
         if db is None:
@@ -129,17 +163,22 @@ def get_book_reviews(book_id):
         if not book:
             return {"success": False, "message": "Book not found"}, 404
         
-        # Fetch all reviews for this book
+        # ✅ Fetch from reviews collection, not from book document
         reviews_collection = db["reviews"]
-        # This is simplified - in real app, reviews should have book_id field
-        # For now, we'll assume reviews are linked by querying
+        all_reviews = list(reviews_collection.find({"book_id": ObjectId(book_id)}))
+        
+        # Convert ObjectId to string for JSON serialization
+        for review in all_reviews:
+            review['_id'] = str(review['_id'])
+            review['user_id'] = str(review['user_id'])
+            review['created_at'] = review['created_at'].isoformat()
         
         return {
             "success": True,
             "data": {
                 "avg_rating": book.get('avg_rating', 0),
                 "review_count": book.get('review_count', 0),
-                "reviews": book.get('reviews', [])
+                "reviews": all_reviews
             }
         }, 200
     
