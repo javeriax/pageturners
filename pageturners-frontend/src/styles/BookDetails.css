@@ -1,5 +1,3 @@
-
-
 .book-details-page {
     min-height: 100vh;
     background-color: var(--bg-page);
@@ -60,7 +58,7 @@
     height: 330px;
     object-fit: cover;
     border-radius: 6px;
-    box-shadow: 6px 6px 28px rgba(0,0,0,0.18);
+    box-shadow: 6px 6px 28px rgba(0, 0, 0, 0.18);
     display: block;
 }
 
@@ -190,10 +188,13 @@
 }
 
 .synopsis-section {
-    margin-top: 10px; /* Pushes the synopsis down */
+    margin-top: 10px;
+    /* Pushes the synopsis down */
     padding-top: 10px;
-    border-top: 1px solid var(--accent-border); /* Subtle line for separation */
+    border-top: 1px solid var(--accent-border);
+    /* Subtle line for separation */
 }
+
 /* ─── synopsis ────────────────────────────────────────────────── */
 .synopsis-label {
     font-size: 11px;
@@ -406,6 +407,317 @@
     font-size: 15px;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   US.7: LIBRARY PAGE STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+.library-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 2rem 4rem;
+}
+
+.library-header {
+    margin-bottom: 2rem;
+}
+
+.library-header h1 {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.library-count {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ─── status filter buttons ────────────────────────────────────── */
+.library-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 10px 18px;
+    background: var(--bg-hover);
+    border: 1px solid var(--accent-border);
+    border-radius: 999px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+}
+
+.filter-btn:hover {
+    border-color: var(--accent);
+    background: var(--bg-input);
+}
+
+.filter-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* ─── empty library state ──────────────────────────────────────── */
+.empty-library {
+    text-align: center;
+    padding: 6rem 2rem;
+    border: 2px dashed var(--accent-border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-hover);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-library h2 {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.empty-library p {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+/* ─── library books grid ───────────────────────────────────────── */
+.library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.library-book-item {
+    position: relative;
+}
+
+/* ─── status and actions overlay ───────────────────────────────── */
+.library-book-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--accent-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.status-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.status-section label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+.status-select {
+    padding: 7px 10px;
+    background: var(--bg-input);
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: border-color var(--transition);
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.remove-btn {
+    padding: 8px 12px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    color: #d32f2f;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+}
+
+.remove-btn:hover {
+    background: #ffe0e0;
+    border-color: #d32f2f;
+}
+
+/* ─── confirmation overlay ─────────────────────────────────────── */
+.confirmation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.confirmation-dialog {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.confirmation-dialog p {
+    font-size: 15px;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+.confirmation-dialog strong {
+    font-weight: 700;
+}
+
+.confirmation-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.confirm-btn,
+.cancel-btn {
+    padding: 10px 24px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.confirm-btn {
+    background: #d32f2f;
+    color: white;
+}
+
+.confirm-btn:hover {
+    background: #b71c1c;
+}
+
+.cancel-btn {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border: 1px solid var(--accent-border);
+}
+
+.cancel-btn:hover {
+    background: var(--bg-input);
+}
+
+/* ─── added date ───────────────────────────────────────────────── */
+.added-date {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* ─── pagination ───────────────────────────────────────────────── */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--accent-border);
+}
+
+.pagination-btn {
+    padding: 10px 20px;
+    background: var(--bg-hover);
+    border: 1px solid var(--accent-border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ─── error message ────────────────────────────────────────────── */
+.error-message {
+    background: #fde0e0;
+    color: #d32f2f;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 14px;
+    border-left: 4px solid #d32f2f;
+}
+
+/* ─── library error for add to library button ──────────────────── */
+.library-error {
+    color: #d32f2f;
+    font-size: 12px;
+    margin-top: 0.5rem;
+}
+
+/* ─── add to library button states ─────────────────────────────── */
+.add-library-btn.in-library {
+    background: #4caf50;
+}
+
+.add-library-btn.in-library:hover {
+    background: #45a049;
+}
+
+.add-library-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 /* ─── responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .book-hero-inner {
@@ -435,5 +747,24 @@
 
     .book-breadcrumb {
         display: none;
+    }
+
+    .library-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+
+    .library-filters {
+        gap: 8px;
+    }
+
+    .filter-btn {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+
+    .pagination {
+        flex-direction: column;
+        gap: 1rem;
     }
 }

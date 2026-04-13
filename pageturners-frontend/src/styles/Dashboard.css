@@ -1482,3 +1482,208 @@ consistent with auth.css palette and typography */
      }
 
  }
+
+
+ /* ─────────────────────────────────────────────────────────────── */
+ /* ───────────────── LIBRARY PAGE STYLES ──────────────────────── */
+ /* ─────────────────────────────────────────────────────────────── */
+
+ .library-container {
+     padding: 2rem;
+     max-width: 1400px;
+     margin: 0 auto;
+ }
+
+ .library-header {
+     margin-bottom: 2rem;
+ }
+
+ .library-header h1 {
+     font-size: 2.5rem;
+     font-weight: 700;
+     color: var(--text-primary);
+     margin-bottom: 0.5rem;
+     font-family: var(--font-serif);
+ }
+
+ .library-subtitle {
+     font-size: 1rem;
+     color: var(--text-muted);
+     font-weight: 400;
+ }
+
+ /* ─── stats section ────── */
+ .library-stats {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+     gap: 1.5rem;
+     margin-bottom: 3rem;
+ }
+
+ .stat-box {
+     background: white;
+     border: 2px solid var(--accent-border);
+     border-radius: var(--radius-lg);
+     padding: 1.5rem;
+     text-align: left;
+     box-shadow: var(--shadow-sm);
+     transition: all var(--transition);
+ }
+
+ .stat-box:hover {
+     border-color: var(--accent);
+     box-shadow: var(--shadow);
+ }
+
+ .stat-label {
+     font-size: 0.85rem;
+     font-weight: 600;
+     color: var(--text-muted);
+     text-transform: uppercase;
+     letter-spacing: 1px;
+     margin-bottom: 0.5rem;
+ }
+
+ .stat-value {
+     font-size: 2.5rem;
+     font-weight: 700;
+     color: var(--accent);
+     font-family: var(--font-serif);
+ }
+
+ /* ─── library sections ────── */
+ .library-sections {
+     display: flex;
+     flex-direction: column;
+     gap: 3rem;
+ }
+
+ .library-status-section {
+     margin-bottom: 2rem;
+ }
+
+ .library-status-section h2 {
+     font-size: 1.5rem;
+     font-weight: 600;
+     color: var(--text-primary);
+     margin-bottom: 1.5rem;
+     font-family: var(--font-serif);
+ }
+
+ /* ─── books grid in library ────── */
+ .library-books-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+     gap: 1.5rem;
+ }
+
+ .library-book-card {
+     display: flex;
+     flex-direction: column;
+     gap: 1rem;
+ }
+
+ .library-book-footer {
+     display: flex;
+     gap: 0.5rem;
+ }
+
+ .status-select {
+     flex: 1;
+     padding: 8px 10px;
+     border: 1px solid var(--accent-border);
+     border-radius: var(--radius);
+     background: white;
+     color: var(--text-primary);
+     font-size: 13px;
+     font-family: var(--font-sans);
+     cursor: pointer;
+     transition: all var(--transition);
+ }
+
+ .status-select:hover,
+ .status-select:focus {
+     border-color: var(--accent);
+     box-shadow: 0 0 0 2px rgba(139, 111, 71, 0.1);
+     outline: none;
+ }
+
+ .empty-status {
+     padding: 3rem 2rem;
+     text-align: center;
+     background: #faf8f4;
+     border: 2px dashed var(--accent-border);
+     border-radius: var(--radius-lg);
+     color: var(--text-muted);
+     font-size: 1rem;
+ }
+
+ /* ─── empty library state ────── */
+ .empty-library {
+     text-align: center;
+     padding: 4rem 2rem;
+     background: #faf8f4;
+     border-radius: var(--radius-lg);
+     margin: 2rem 0;
+ }
+
+ .empty-icon {
+     font-size: 4rem;
+     margin-bottom: 1rem;
+ }
+
+ .empty-library h2 {
+     font-size: 1.8rem;
+     color: var(--text-primary);
+     margin-bottom: 0.5rem;
+     font-family: var(--font-serif);
+ }
+
+ .empty-library p {
+     color: var(--text-muted);
+     font-size: 1rem;
+     margin-bottom: 1.5rem;
+ }
+
+ /* ─── error message ────── */
+ .error-message {
+     background: var(--error-bg);
+     border: 1px solid var(--error-border);
+     color: var(--error);
+     padding: 1rem;
+     border-radius: var(--radius-md);
+     margin-bottom: 1.5rem;
+     font-size: 0.95rem;
+ }
+
+ @media (max-width: 1000px) {
+     .library-stats {
+         grid-template-columns: repeat(2, 1fr);
+     }
+
+     .library-books-grid {
+         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+     }
+ }
+
+ @media (max-width: 600px) {
+     .library-container {
+         padding: 1rem;
+     }
+
+     .library-header h1 {
+         font-size: 1.8rem;
+     }
+
+     .library-stats {
+         grid-template-columns: 1fr;
+     }
+
+     .library-books-grid {
+         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+     }
+
+     .library-status-section h2 {
+         font-size: 1.2rem;
+     }
+ }
