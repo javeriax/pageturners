@@ -107,7 +107,7 @@ def register():
             }, 400
         
         # Get database reference
-        from app import db
+        from backend_app import db
         users_collection = db["users"]
         
         print("Connected to database")
@@ -185,7 +185,7 @@ def verify_email():
                 "message": "Email and verification code are required"
             }, 400
         
-        from app import db
+        from backend_app import db
         users_collection = db["users"]
         
         user = users_collection.find_one({"email": email})
@@ -234,7 +234,7 @@ def verify_email():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    from app import db
+    from backend_app import db
     from flask_jwt_extended import create_access_token
     import bcrypt
 

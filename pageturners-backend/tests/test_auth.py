@@ -1,6 +1,6 @@
 import pytest
 import mongomock
-from app import app, db
+from backend_app import app, db
 from datetime import datetime, timezone
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def mock_db(monkeypatch):
     mock_client = mongomock.MongoClient()
     mock_database = mock_client["pageturners_test"]
     # Force the app to use the mock database to avoid touching real data
-    monkeypatch.setattr("app.db", mock_database)
+    monkeypatch.setattr("backend_app.db", mock_database)
     return mock_database
 
 # TC-AM-01: New User Registration 
@@ -148,3 +148,8 @@ def test_login_returns_valid_jwt_token(client, mock_db):
     # Valid JWT has exactly 3 parts separated by dots
     parts = data["token"].split(".")
     assert len(parts) == 3
+
+# TC-API-02: Protected API Access Without Token
+def test_protected_books_initial_without_token(client):
+    response = client.get('/api/books/initial')
+    assert response.status_code == 401

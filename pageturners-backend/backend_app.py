@@ -19,7 +19,7 @@ jwt = JWTManager(app)
 try:
     client = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=5000)
     client.admin.command('ping')
-    db = client["pageturners"]  # ✅ client defined first
+    db = client["pageturners"]  # client defined first
     app.db = db
     print("Connected to MongoDB")
 except Exception as e:

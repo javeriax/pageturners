@@ -1,6 +1,6 @@
 import pytest
 import mongomock
-from app import app
+from backend_app import app, db
 from datetime import datetime
 from bson import ObjectId
 
@@ -43,7 +43,7 @@ def auth_token(mock_db):
     """Create a test user and return a JWT token"""
     import bcrypt
     from flask_jwt_extended import create_access_token
-    from app import app
+    from backend_app import app, db
 
     hashed_password = bcrypt.hashpw("TestPassword123".encode('utf-8'), bcrypt.gensalt())
     user = mock_db.users.insert_one({

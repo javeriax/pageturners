@@ -1,6 +1,6 @@
 // used by both Dashboard and book details to handle navigation to book details upon clicking a book card
 import { useNavigate } from 'react-router-dom';
-
+import React from 'react';
 const BookCard = ({ book }) => {
     const navigate = useNavigate();
 

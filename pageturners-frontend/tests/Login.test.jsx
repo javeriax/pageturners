@@ -6,31 +6,31 @@
  * TEST STATUS: ALL 16 TESTS PASSING
  *
  * PASSING TESTS (Frontend Only):
- * ✓ Form Rendering (4 tests)
+ * Form Rendering (4 tests)
  *   - should render email and password fields
  *   - should render the login button
  *   - should render PageTurners heading
  *   - should render forgot password and sign up links
  *
- * ✓ Form Validation (4 tests)
+ *  Form Validation (4 tests)
  *   - should show error when email is empty (TC-AM-04)
  *   - should show error when email is invalid (TC-AM-04)
  *   - should show error when password is empty (TC-AM-04)
  *   - should clear validation errors when user starts typing
  *
- * ✓ Form Submission (3 tests)
+ *  Form Submission (3 tests)
  *   - should call loginUser API with correct data (TC-AM-03, TC-API-01)
  *   - should not call loginUser API when validation fails (TC-AM-04)
  *   - should display loading state during submission
  *
- * ✓ Success Handling (1 test)
+ *  Success Handling (1 test)
  *   - should store token and redirect on successful login (TC-AM-03, TC-API-01)
  *
- * ✓ Error Handling (2 tests)
+ *  Error Handling (2 tests)
  *   - should display error message on invalid credentials (TC-AM-04)
  *   - should display error message on API failure
  *
- * ✓ Edge Cases (2 tests)
+ *  Edge Cases (2 tests)
  *   - should disable inputs during submission
  *   - should handle rapid form submission attempts
  *
