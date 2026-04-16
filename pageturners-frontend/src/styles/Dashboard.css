@@ -869,10 +869,9 @@ consistent with auth.css palette and typography */
 
  .book-card {
 
+
      flex-shrink: 0;
-
-     width: 180px;
-
+     
      cursor: pointer;
 
      transition: transform var(--transition);

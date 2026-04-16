@@ -62,7 +62,8 @@ def add_to_library():
             "user_id": ObjectId(user_id),
             "book_id": book_obj_id,
             "added_at": datetime.utcnow(),
-            "status": "want to read"  # Status: want to read, currently reading, completed, dropped
+            "status": "want to read",  # Status: want to read, currently reading, completed, dropped
+            "current_page" :  0  # track reading progress in the future
         }
         
         # Insert into library
@@ -74,7 +75,8 @@ def add_to_library():
             "data": {
                 "library_id": str(result.inserted_id),
                 "book_id": book_id,
-                "status": "want to read"
+                "status": "want to read",
+                "current_page": 0  # track reading progress in the future
             }
         }, 201
     
@@ -139,6 +141,7 @@ def get_user_library():
                 book['_id'] = str(book['_id'])
                 book['library_id'] = str(entry['_id'])
                 book['status'] = entry['status']
+                book['current_page'] = entry.get('current_page', 0) # Include reading progress
                 book['added_at'] = entry['added_at'].isoformat()
                 books_data.append(book)
         
@@ -276,4 +279,68 @@ def update_library_status(book_id):
     
     except Exception as e:
         print(f"Error updating library status: {e}")
+        return {"success": False, "message": str(e)}, 500
+
+
+#UPDATE READING PROGRESS ENDPOINT 
+@library_bp.route('/<book_id>/progress', methods=['PATCH'])
+@jwt_required()
+def update_progress(book_id):
+    """
+    Update current page number for a book in user's library
+    """
+    try:
+        user_id = get_jwt_identity()
+        db = current_app.db
+        
+        # 1. Validate book_id format
+        try:
+            book_obj_id = ObjectId(book_id)
+        except:
+            return {"success": False, "message": "Invalid book ID format"}, 400
+
+        # 2. Get and validate input data 
+        data = request.get_json()
+        new_page = data.get('current_page')
+
+        #3. Fetch book details to verify total pages
+        book = db["books"].find_one({"_id": book_obj_id})
+        if not book:
+            return {"success": False, "message": "Book not found"}, 404
+        total_pages = book.get('total_pages', 0)
+
+        #4. Validate new_page is a non-negative integer and does not exceed total pages
+        if new_page is None or not isinstance(new_page, int) or new_page < 0 or new_page > total_pages:
+            print("🔥 RETURNING 400 - INVALID PAGE", flush=True)
+            return {"success": False, "message": "Valid page number is required"}, 400
+
+        # 5. Update the progress in MongoDB and ensure the book is in user's library
+        library_collection = db["user_library"]
+        result = library_collection.update_one(
+            {
+                "user_id": ObjectId(user_id),
+                "book_id": book_obj_id
+            },
+            {
+                "$set": {
+                    "current_page": new_page,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+
+        if result.matched_count == 0:
+            return {"success": False, "message": "Book not found in your library"}, 404
+
+        return {
+            "success": True,
+            "message": "Progress updated successfully",
+            "data": {
+                "current_page": new_page,
+                "total_pages": total_pages
+            }
+        }, 200
+
+    except Exception as e:
+        print(f"Error updating progress: {e}")
         return {"success": False, "message": str(e)}, 500

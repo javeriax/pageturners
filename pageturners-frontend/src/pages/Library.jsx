@@ -6,7 +6,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLibrary, removeFromLibrary, updateLibraryStatus } from '../api/books';
 import '../styles/Dashboard.css';
+import '../styles/ProgressTracker.css';
 import BookCard from '../components/BookCard';
+import ReadingProgress from './ProgressTracker';
 
 export default function Library() {
     const navigate = useNavigate();
@@ -67,16 +69,22 @@ export default function Library() {
     };
 
     // Handle updating reading status
-    const handleUpdateStatus = async (bookId, newStatus) => {
-        const result = await updateLibraryStatus(bookId, newStatus);
-
-        if (result.success) {
-            // Update in UI
-            setAllBooks(allBooks.map(book =>
-                book._id === bookId ? { ...book, status: newStatus } : book
-            ));
-        }
-    };
+    const handleUpdateStatus = async (bookId, newStatus) => { // e.x: "currently reading", "completed", etc.
+    const result = await updateLibraryStatus(bookId, newStatus); // API call to update status in backend
+    // If successful, update status in UI
+    if (result.success) {
+        setAllBooks(allBooks.map(book => {
+            if (book._id !== bookId) return book; // no change for other books
+            return {
+                ...book,
+                status: newStatus,
+                current_page: newStatus === 'currently reading' // if moving to currently reading, keep current page
+                    ? book.current_page // keep if still reading
+                    : 0                 // reset otherwise
+            };
+        }));
+    }
+};
 
     // Organize books by status
     const booksByStatus = {
@@ -112,7 +120,17 @@ export default function Library() {
                     {books.map(book => (
                         <div key={book._id} className="library-book-card">
                             <BookCard book={book} />
-                            <div className="library-book-footer">
+                                    {book.status === 'currently reading' && (
+                            <ReadingProgress 
+                                    book={book} 
+                                    onUpdate={(bookId, newPage) => {
+                                        setAllBooks(allBooks.map(b =>
+                                            b._id === bookId ? { ...b, current_page: newPage } : b
+                                        ));
+                                    }}
+                                />
+                            )}
+                              <div className="library-book-footer">
                                 <select
                                     className="status-select"
                                     value={book.status}
