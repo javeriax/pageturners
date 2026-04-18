@@ -25,7 +25,8 @@ try:
 except Exception as e:
     print(f"Failed to connect to MongoDB: {e}")
     app.db = None
-    
+
+
 # Health check endpoint
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -35,13 +36,21 @@ from routes.auth import auth_bp
 from routes.books import books_bp
 from routes.reviews import reviews_bp
 from routes.library import library_bp
-# from routes.profile import profile_bp
+from routes.profile import profile_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(books_bp)
 app.register_blueprint(reviews_bp)
 app.register_blueprint(library_bp)
-# app.register_blueprint(profile_bp)
+app.register_blueprint(profile_bp)
+
+from flask import send_from_directory
+
+@app.route('/uploads/<path:filename>')
+def serve_upload(filename):
+    return send_from_directory('uploads', filename)
+
+
 
 if __name__ == "__main__":
     app.run(debug=True, threaded=True, port=5001)

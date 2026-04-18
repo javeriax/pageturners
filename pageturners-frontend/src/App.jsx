@@ -6,6 +6,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import Dashboard from './pages/Dashboard'; // import the dashboard component
 import BookDetails from './pages/BookDetails'; //the bookdetails compoenent
 import Library from './pages/Library'; // US.7: import library component
+import Profile from './pages/Profile';
 /**
  * ProtectedRoute: Checks if a JWT token exists in local storage.
  * If no token is found, it redirects the user to the login page.
@@ -29,6 +30,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/profile" element={<Profile />} />
 
           {/* Protected Routes */}
 
