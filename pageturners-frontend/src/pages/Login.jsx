@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { loginUser } from '../api/auth';
 import { useRef } from 'react';
 import React from 'react';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import '../styles/Auth.css';
 
 // Login component for user authentication
@@ -12,6 +13,9 @@ export default function Login() {
 
     // error: Stores error messages from API (like "Incorrect email or password")
     const [error, setError] = useState('');
+
+    // forgotPasswordModalOpen: Controls whether the forgot password modal is visible
+    const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState(false);
 
     // formData: Stores all form field values. Each field updates this object as user types
     const [formData, setFormData] = useState({
@@ -196,14 +200,25 @@ export default function Login() {
 
                 {/* Footer with links */}
                 <p className="auth-footer">
-                    <a href="/forgot-password" className="auth-link">
+                    <button
+                        type="button"
+                        className="auth-link"
+                        onClick={() => setForgotPasswordModalOpen(true)}
+                        data-testid="forgot-password-btn"
+                    >
                         Forgot Password?
-                    </a>
+                    </button>
                     {' • '}
                     <a href="/register" className="auth-link">
                         Sign Up
                     </a>
                 </p>
+
+                {/* Forgot Password Modal */}
+                <ForgotPasswordModal
+                    isOpen={forgotPasswordModalOpen}
+                    onClose={() => setForgotPasswordModalOpen(false)}
+                />
             </div>
         </div>
     );

@@ -119,3 +119,85 @@ export const loginUser = async (email, password) => {
         };
     }
 };
+
+// forgotPassword: Sends password reset request to backend
+// Takes email from form
+// Backend sends password reset email with reset code
+// Returns {success: true/false, message: "error or success message"}
+export const forgotPassword = async (email) => {
+    try {
+        // Send POST request to backend /api/auth/forgot-password endpoint
+        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email,
+            }),
+        });
+
+        // Parse response from backend
+        const data = await response.json();
+
+        // Check if request was successful (status 200-299 range)
+        if (!response.ok) {
+            throw new Error(data.message || 'Password reset request failed');
+        }
+
+        // Return success message to frontend
+        return {
+            success: true,
+            message: data.message || 'Password reset link sent to your email',
+            data,
+        };
+    } catch (error) {
+        // Return error message if something went wrong
+        return {
+            success: false,
+            message: error.message || 'An error occurred during password reset request',
+        };
+    }
+};
+
+// resetPassword: Resets user password with reset code
+// Takes email, reset code, and new password
+// Backend validates code and updates password
+// Returns {success: true/false, message: "error or success message"}
+export const resetPassword = async (email, resetCode, newPassword) => {
+    try {
+        // Send POST request to backend /api/auth/reset-password endpoint
+        const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email,
+                reset_code: resetCode,
+                new_password: newPassword,
+            }),
+        });
+
+        // Parse response from backend
+        const data = await response.json();
+
+        // Check if request was successful (status 200-299 range)
+        if (!response.ok) {
+            throw new Error(data.message || 'Password reset failed');
+        }
+
+        // Return success message to frontend
+        return {
+            success: true,
+            message: data.message || 'Password reset successful',
+            data,
+        };
+    } catch (error) {
+        // Return error message if something went wrong
+        return {
+            success: false,
+            message: error.message || 'An error occurred during password reset',
+        };
+    }
+};

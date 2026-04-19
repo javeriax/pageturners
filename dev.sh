@@ -76,7 +76,7 @@ if [ ! -f "$VENV_PYTHON" ]; then
 fi
 
 # Run Flask using the specific venv python in the background
-$VENV_PYTHON app.py &
+$VENV_PYTHON backend_app.py &
 
 # Capture the backend PID for our cleanup function
 BACKEND_PID=$!
