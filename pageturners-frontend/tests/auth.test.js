@@ -283,3 +283,130 @@ describe('TC-API-02: Protected API Access Without Token', () => {
         expect(data.success).toBe(false);
     });
 });
+
+// TC-AM-05: Logout Functionality Tests
+describe('logoutUser - Logout API Tests', () => {
+    /**
+     * TEST CASE: TC-AM-05 - User Logout Session Invalidation
+     * Description: Verify user can successfully logout and JWT token is cleared
+     * Precondition: User has valid JWT token in localStorage
+     * Expected: Token sent to backend, localStorage cleared, success response received
+     */
+    it('should send logout request with valid token and clear localStorage', async () => {
+        // Setup: Store token in localStorage (simulating logged-in user)
+        localStorage.setItem('token', 'valid.jwt.token');
+
+        const mockResponse = {
+            success: true,
+            message: 'Logged out successfully',
+        };
+
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockResponse,
+        });
+
+        const { logoutUser } = await import('../src/api/auth');
+        const result = await logoutUser();
+
+        // Verify logout request sent with correct format
+        expect(global.fetch).toHaveBeenCalledWith(
+            'http://localhost:5001/api/auth/logout',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer valid.jwt.token',
+                },
+            }
+        );
+
+        // Verify success response
+        expect(result.success).toBe(true);
+        expect(result.message).toContain('Logged out');
+
+        // Verify token removed from localStorage
+        expect(localStorage.getItem('token')).toBeNull();
+    });
+
+    /**
+     * TEST CASE: TC-AM-06 - Logout Without Valid Token
+     * Description: Verify logout fails when token is missing
+     * Expected: Error response, localStorage still cleared
+     */
+    it('should clear localStorage even if logout request fails', async () => {
+        localStorage.setItem('token', 'valid.jwt.token');
+
+        const mockResponse = {
+            success: false,
+            message: 'Authorization header missing',
+        };
+
+        global.fetch.mockResolvedValueOnce({
+            ok: false,
+            status: 401,
+            json: async () => mockResponse,
+        });
+
+        const { logoutUser } = await import('../src/api/auth');
+        const result = await logoutUser();
+
+        // Verify error response
+        expect(result.success).toBe(false);
+
+        // Verify token is still cleared (safety measure)
+        expect(localStorage.getItem('token')).toBeNull();
+    });
+
+    /**
+     * TEST CASE: TC-AM-07 - Network Error During Logout
+     * Description: Verify logout handles network errors gracefully
+     * Expected: Error caught, localStorage cleared, error message returned
+     */
+    it('should handle network errors during logout', async () => {
+        localStorage.setItem('token', 'valid.jwt.token');
+
+        // Simulate network error
+        global.fetch.mockRejectedValueOnce(
+            new Error('Network error: Failed to connect to server')
+        );
+
+        const { logoutUser } = await import('../src/api/auth');
+        const result = await logoutUser();
+
+        // Verify error is caught and reported
+        expect(result.success).toBe(false);
+        expect(result.message).toContain('Network error');
+
+        // Verify token is cleared despite network error
+        expect(localStorage.getItem('token')).toBeNull();
+    });
+
+    /**
+     * TEST CASE: TC-AM-08 - Logout Response Validation
+     * Description: Verify logout API returns proper response format
+     * Expected: Response contains success flag and message
+     */
+    it('should return properly formatted logout response', async () => {
+        localStorage.setItem('token', 'valid.jwt.token');
+
+        const mockResponse = {
+            success: true,
+            message: 'Logged out successfully',
+        };
+
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockResponse,
+        });
+
+        const { logoutUser } = await import('../src/api/auth');
+        const result = await logoutUser();
+
+        // Verify response structure
+        expect(result).toHaveProperty('success');
+        expect(result).toHaveProperty('message');
+        expect(typeof result.success).toBe('boolean');
+        expect(typeof result.message).toBe('string');
+    });
+});

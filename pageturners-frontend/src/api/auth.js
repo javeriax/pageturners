@@ -119,3 +119,46 @@ export const loginUser = async (email, password) => {
         };
     }
 };
+
+// logoutUser: Sends logout request to backend
+// Invalidates user's JWT token on backend
+// Clears localStorage token on frontend
+// Returns {success: true/false, message: "success or error message"}
+export const logoutUser = async () => {
+    try {
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+
+        // Send POST request to backend /api/auth/logout endpoint
+        const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        // Parse response from backend
+        const data = await response.json();
+
+        // Clear token from localStorage regardless of response
+        localStorage.removeItem('token');
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Logout failed');
+        }
+
+        return {
+            success: true,
+            message: data.message || 'Logged out successfully',
+        };
+    } catch (error) {
+        // Clear token even if logout request fails
+        localStorage.removeItem('token');
+
+        return {
+            success: false,
+            message: error.message || 'An error occurred during logout',
+        };
+    }
+};

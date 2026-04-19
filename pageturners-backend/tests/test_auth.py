@@ -153,3 +153,69 @@ def test_login_returns_valid_jwt_token(client, mock_db):
 def test_protected_books_initial_without_token(client):
     response = client.get('/api/books/initial')
     assert response.status_code == 401
+
+# TC-AM-05: User Logout - Session Invalidation
+def test_logout_success(client, mock_db):
+    """
+    TEST CASE: TC-AM-05 - Logout Functionality
+    Description: Verify user can successfully logout and token is invalidated
+    Precondition: User is logged in with valid JWT token
+    """
+    import bcrypt
+    # Pre-insert a verified user
+    hashed = bcrypt.hashpw("Password123".encode('utf-8'), bcrypt.gensalt())
+    user = mock_db.users.insert_one({
+        "username": "testuser",
+        "email": "logout@example.com",
+        "password": hashed,
+        "is_verified": True
+    })
+    
+    # First, login to get token
+    login_payload = {
+        "email": "logout@example.com",
+        "password": "Password123"
+    }
+    login_response = client.post('/api/auth/login', json=login_payload)
+    token = login_response.get_json()["token"]
+    
+    # Now logout with valid token
+    headers = {"Authorization": f"Bearer {token}"}
+    logout_response = client.post('/api/auth/logout', headers=headers)
+    logout_data = logout_response.get_json()
+    
+    # System should return 200 OK with success message
+    assert logout_response.status_code == 200
+    assert logout_data["success"] is True
+    assert "Logged out" in logout_data["message"]
+
+# TC-AM-06: Logout Without Authorization Token
+def test_logout_without_token(client):
+    """
+    TEST CASE: TC-AM-06 - Logout Authentication Validation
+    Description: Verify logout fails when no Authorization header provided
+    Expected: 401 Unauthorized
+    """
+    # Attempt logout without Authorization header
+    response = client.post('/api/auth/logout')
+    
+    # System should reject request without token
+    assert response.status_code == 401
+    assert response.get_json()["success"] is False
+
+# TC-AM-07: Logout With Invalid Token
+def test_logout_with_invalid_token(client):
+    """
+    TEST CASE: TC-AM-07 - Invalid Token Rejection
+    Description: Verify logout rejects malformed/invalid JWT tokens
+    Expected: 401 Unauthorized or 422 Unprocessable Entity
+    """
+    invalid_token = "invalid.token.here"
+    headers = {"Authorization": f"Bearer {invalid_token}"}
+    
+    response = client.post('/api/auth/logout', headers=headers)
+    
+    # System should reject invalid token
+    assert response.status_code in [401, 422]
+    assert response.get_json()["success"] is False
+

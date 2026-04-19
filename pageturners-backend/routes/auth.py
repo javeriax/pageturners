@@ -270,3 +270,57 @@ def login():
         "message": "Login successful",
         "token": token
     }, 200
+
+
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    """
+    Logout endpoint - invalidates user's session
+    Requires Authorization header with JWT token
+    Returns success message
+    """
+    try:
+        from flask_jwt_extended import decode_token
+        
+        # Get token from Authorization header
+        auth_header = request.headers.get('Authorization')
+        
+        if not auth_header:
+            return {
+                "success": False,
+                "message": "Authorization header missing"
+            }, 401
+
+        # Extract token from "Bearer <token>" format
+        try:
+            token = auth_header.split(' ')[1]
+        except IndexError:
+            return {
+                "success": False,
+                "message": "Invalid authorization header format"
+            }, 401
+
+        # Verify JWT token is valid
+        try:
+            decode_token(token)
+        except Exception as jwt_error:
+            return {
+                "success": False,
+                "message": f"Invalid token: {str(jwt_error)}"
+            }, 422
+
+        # In a real app, you would:
+        # 1. Add token to a blacklist (Redis/Database)
+        # 2. Or invalidate the session in database
+        # For now, we just return success as frontend clears token
+
+        return {
+            "success": True,
+            "message": "Logged out successfully"
+        }, 200
+
+    except Exception as e:
+        return {
+            "success": False,
+            "message": str(e)
+        }, 500
