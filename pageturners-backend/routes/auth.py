@@ -451,6 +451,14 @@ def reset_password():
                         "message": "Reset code has expired. Please request a new one."
                     }, 400
         
+        # Check if new password is the same as current password
+        import bcrypt
+        if bcrypt.checkpw(new_password.encode('utf-8'), user['password']):
+            return {
+                "success": False,
+                "message": "You cannot keep this as your new password. Please choose a different password."
+            }, 400
+        
         # Hash new password
         hashed_password = hash_password(new_password)
         
