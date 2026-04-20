@@ -4,7 +4,7 @@
 from flask import Blueprint, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from bson import ObjectId
-from datetime import datetime, timezone
+from datetime import datetime
 import bcrypt
 import base64
 import re
@@ -33,27 +33,26 @@ def store_image(base64_str, user_id):
     import os
     import hashlib
     
+    # Create uploads directory if it doesn't exist
     upload_dir = 'uploads/profile_pictures'
     os.makedirs(upload_dir, exist_ok=True)
     
-    # Detect extension BEFORE stripping the header
-    if 'jpeg' in base64_str or 'jpg' in base64_str:
-        file_ext = 'jpg'
-    else:
-        file_ext = 'png'
-    
-    # Now strip the data URI prefix
+    # Remove data URI prefix
     if ',' in base64_str:
         base64_str = base64_str.split(',')[1]
     
+    # Decode base64
     try:
         image_data = base64.b64decode(base64_str)
     except Exception:
         return None
     
-    hash_name = hashlib.md5(f"{user_id}{datetime.now(timezone.utc).timestamp()}".encode()).hexdigest()
+    # Generate filename
+    hash_name = hashlib.md5(f"{user_id}{datetime.utcnow().timestamp()}".encode()).hexdigest()
+    file_ext = 'jpg' if 'jpeg' in base64_str or 'jpg' in base64_str else 'png'
     filename = f"{hash_name}.{file_ext}"
     
+    # Save file
     filepath = os.path.join(upload_dir, filename)
     try:
         with open(filepath, 'wb') as f:
@@ -61,38 +60,6 @@ def store_image(base64_str, user_id):
         return f"/uploads/profile_pictures/{filename}"
     except Exception:
         return None
-# def store_image(base64_str, user_id):
-#     """FR8: Store uploaded image and return URL"""
-#     import os
-#     import hashlib
-    
-#     # Create uploads directory if it doesn't exist
-#     upload_dir = 'uploads/profile_pictures'
-#     os.makedirs(upload_dir, exist_ok=True)
-    
-#     # Remove data URI prefix
-#     if ',' in base64_str:
-#         base64_str = base64_str.split(',')[1]
-    
-#     # Decode base64
-#     try:
-#         image_data = base64.b64decode(base64_str)
-#     except Exception:
-#         return None
-    
-#     # Generate filename
-#     hash_name = hashlib.md5(f"{user_id}{datetime.utcnow().timestamp()}".encode()).hexdigest()
-#     file_ext = 'jpg' if 'jpeg' in base64_str or 'jpg' in base64_str else 'png'
-#     filename = f"{hash_name}.{file_ext}"
-    
-#     # Save file
-#     filepath = os.path.join(upload_dir, filename)
-#     try:
-#         with open(filepath, 'wb') as f:
-#             f.write(image_data)
-#         return f"/uploads/profile_pictures/{filename}"
-#     except Exception:
-#         return None
 
 
 # FR6: GET /api/profile - Fetch current user's profile data
@@ -206,24 +173,17 @@ def update_profile():
             existing_user = users_collection.find_one(
                 {"email": new_email, "_id": {"$ne": ObjectId(user_id)}}
             )
-
+            
             if existing_user:
                 return {
                     "success": False,
                     "message": "Email already registered"
                 }, 409
-
-            # Generate a new verification code
-            import secrets
-            verification_code = secrets.token_hex(3).upper()
-
+            
             update_data["email"] = new_email
+            # FR6.3: Mark email as unverified (requires verification)
             update_data["is_verified"] = False
-            update_data["verification_code"] = verification_code
-
-            # Send verification email using the same function from auth
-            from routes.auth import send_verification_email
-            send_verification_email(new_email, verification_code)
+            update_data["verification_code"] = "PENDING"
         
         if not update_data:
             return {
@@ -395,12 +355,12 @@ def upload_profile_picture():
             {"_id": ObjectId(user_id)},
             {"$set": {"profile_picture": picture_url}}
         )
-        full_url = f"http://localhost:5001{picture_url}"
+        
         return {
             "success": True,
             "message": "Profile picture uploaded successfully",
             "data": {
-                "profile_picture": full_url
+                "profile_picture": picture_url
             }
         }, 200
     
