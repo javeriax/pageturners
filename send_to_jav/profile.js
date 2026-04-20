@@ -138,7 +138,7 @@ export const uploadProfilePicture = async (base64Image) => {
         if (!token) {
             return {
                 success: false,
-                message: 'You must be logged in.'
+                message: 'You must be logged in to submit a review'
             };
         }
         
@@ -167,14 +167,12 @@ export const uploadProfilePicture = async (base64Image) => {
             throw new Error(data.message || 'Failed to upload picture');
         }
 
-
+        
         return {
             success: true,
             message: data.message,
             data: {
-                // profile_picture: `http://localhost:5001${data.data.profile_picture}`
-                profile_picture: data.data.profile_picture
-
+                profile_picture: `http://localhost:5001${data.data.profile_picture}`
             }
         };
     } catch (error) {

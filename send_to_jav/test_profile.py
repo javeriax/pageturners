@@ -4,7 +4,7 @@
 
 import pytest
 import mongomock
-from backend_app import app
+from app import app
 from datetime import datetime
 from bson import ObjectId
 import bcrypt
@@ -19,18 +19,15 @@ def client():
 @pytest.fixture(autouse=True)
 def mock_db(monkeypatch):
     """Replaces the real database with a mock one for every test."""
-    from backend_app import app
     mock_client = mongomock.MongoClient()
     mock_database = mock_client["pageturners_test"]
-    monkeypatch.setattr("backend_app.db", mock_database)
-    app.db = mock_database  # patches current_app.db 
+    monkeypatch.setattr("app.db", mock_database)
     return mock_database
 
 @pytest.fixture
 def auth_token(mock_db):
     """Create a test user and return a JWT token"""
     from flask_jwt_extended import create_access_token
-    from backend_app import app
     
     hashed_password = bcrypt.hashpw("TestPassword123".encode('utf-8'), bcrypt.gensalt())
     user = mock_db.users.insert_one({
@@ -42,8 +39,7 @@ def auth_token(mock_db):
         "is_verified": True
     })
     
-    with app.app_context():
-        token = create_access_token(identity=str(user.inserted_id))
+    token = create_access_token(identity=str(user.inserted_id))
     return token, str(user.inserted_id)
 
 # ─── FR6: GET PROFILE TESTS ───
@@ -325,7 +321,8 @@ class TestProfilePictureUpload:
         token, user_id = auth_token
         headers = {"Authorization": f"Bearer {token}"}
         
-        valid_png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        valid_png = "data:image/png;base64,iVBORw0KGgoAAAANS"
+        
         response = client.post(
             '/api/profile/picture',
             json={"image": valid_png},

@@ -22,6 +22,8 @@ const Profile = () => {
     // FR7: Password section state
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
+
+    // ← ADD THIS: Edit mode state
     const [editMode, setEditMode] = useState({
         bio: false,
         username: false,
@@ -67,6 +69,7 @@ const Profile = () => {
         fetchProfile();
     }, [navigate]);
 
+    // ← ADD THIS: Toggle edit mode
     const toggleEditMode = (field) => {
         setEditMode(prev => ({
             ...prev,
@@ -89,7 +92,7 @@ const Profile = () => {
 
         if (result.success) {
             setBioSuccess('Bio updated successfully!');
-            setEditMode(prev => ({ ...prev, bio: false }));
+            setEditMode(prev => ({ ...prev, bio: false })); // ← Exit edit mode
             setTimeout(() => setBioSuccess(''), 3000);
         } else {
             setBioError(result.message);
@@ -222,15 +225,7 @@ const Profile = () => {
                 <nav className="header-nav">
                     <button className="nav-btn" onClick={() => navigate('/dashboard')}>Dashboard</button>
                     <button className="nav-btn" onClick={() => navigate('/library')}>My Library</button>
-                    <button className="nav-btn logout-btn" onClick={async () => {
-                        try {
-                            await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/auth/logout`, {
-                                method: 'POST',
-                                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                            });
-                        } catch (e) {
-                            // still logout on frontend even if backend call fails
-                        }
+                    <button className="nav-btn logout-btn" onClick={() => {
                         localStorage.removeItem('token');
                         navigate('/login');
                     }}>
