@@ -439,7 +439,7 @@ def reset_password():
         if "password_reset_expires" in user:
             reset_time = user["password_reset_expires"]
             if reset_time is not None:
-                # Ensure reset_time is timezone-aware (MongoDB might store it as naive)
+                # Ensure reset_time is timezone-aware
                 if reset_time.tzinfo is None:
                     reset_time = reset_time.replace(tzinfo=timezone.utc)
                 

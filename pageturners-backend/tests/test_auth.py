@@ -153,3 +153,71 @@ def test_login_returns_valid_jwt_token(client, mock_db):
 def test_protected_books_initial_without_token(client):
     response = client.get('/api/books/initial')
     assert response.status_code == 401
+
+
+# TC-AM-06: Password Reset Via Email
+def test_password_reset_via_email(client, mock_db, monkeypatch):
+    import bcrypt
+    
+    # Pre-setup: Register a verified user with an initial password
+    old_password = "OldPassword123"
+    hashed_old_password = bcrypt.hashpw(old_password.encode('utf-8'), bcrypt.gensalt())
+    user_email = "reset@example.com"
+    
+    mock_db.users.insert_one({
+        "username": "resetuser",
+        "email": user_email,
+        "password": hashed_old_password,
+        "is_verified": True
+    })
+    
+    # Step 1 & 2: User clicks "Forgot Password" and enters email
+    forgot_payload = {
+        "email": user_email
+    }
+    response = client.post('/api/auth/forgot-password', json=forgot_payload)
+    assert response.status_code == 200
+    assert response.get_json()["success"] is True
+    
+    # Step 3: Extract reset code from database (simulating clicking reset link in email)
+    user = mock_db.users.find_one({"email": user_email})
+    assert "password_reset_code" in user
+    reset_code = user["password_reset_code"]
+    
+    # Step 4: User enters new password and submits reset form
+    new_password = "NewPassword123"
+    reset_payload = {
+        "email": user_email,
+        "reset_code": reset_code,
+        "new_password": new_password
+    }
+    response = client.post('/api/auth/reset-password', json=reset_payload)
+    assert response.status_code == 200
+    assert response.get_json()["success"] is True
+    assert "Password reset successfully" in response.get_json()["message"]
+    
+    # Verify: System updates the password in the database
+    updated_user = mock_db.users.find_one({"email": user_email})
+    # Password should have been updated (not the same hash as before)
+    assert updated_user["password"] != hashed_old_password
+    # Reset code should be cleared
+    assert "password_reset_code" not in updated_user or updated_user.get("password_reset_code") == ""
+    
+    # Verify: User can login with new password
+    login_payload = {
+        "email": user_email,
+        "password": new_password
+    }
+    response = client.post('/api/auth/login', json=login_payload)
+    assert response.status_code == 200
+    assert response.get_json()["success"] is True
+    assert "token" in response.get_json()
+    
+    # Verify: User cannot login with old password
+    old_login_payload = {
+        "email": user_email,
+        "password": old_password
+    }
+    response = client.post('/api/auth/login', json=old_login_payload)
+    assert response.status_code == 401
+    assert response.get_json()["success"] is False

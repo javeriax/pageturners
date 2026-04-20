@@ -318,6 +318,13 @@ def change_password():
                 "message": "Current password is incorrect"
             }, 400
         
+        # FR7.3: Check if new password is the same as current password
+        if bcrypt.checkpw(new_password.encode('utf-8'), user['password']):
+            return {
+                "success": False,
+                "message": "Your new password cannot be the same as your current password"
+            }, 400
+        
         # Hash new password
         hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
         
