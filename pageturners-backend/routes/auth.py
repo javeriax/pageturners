@@ -83,6 +83,65 @@ def send_verification_email(email, verification_code):
         return False
 
 
+def send_password_reset_email(email, reset_code):
+    """Send password reset email to user via Gmail SMTP"""
+    try:
+        smtp_server = os.getenv("SMTP_SERVER", "localhost")
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        sender_email = os.getenv("SENDER_EMAIL", "noreply@pageturners.local")
+        sender_password = os.getenv("SENDER_PASSWORD", "")
+        
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "PageTurners - Reset Your Password"
+        message["From"] = sender_email
+        message["To"] = email
+        
+        # Create reset link (user will click this link or enter code manually)
+        reset_link = f"http://localhost:5173/reset-password?email={email}&code={reset_code}"
+        
+        text = f"""
+        Password Reset Request
+        
+        We received a request to reset your password. Click the link below or enter the code:
+        {reset_link}
+        
+        Reset Code: {reset_code}
+        
+        This code will expire in 1 hour.
+        If you didn't request this, please ignore this email.
+        """
+        
+        html = f"""\
+        <html>
+          <body>
+            <h2>Reset Your Password</h2>
+            <p>We received a request to reset your password. Click the link below or enter the code:</p>
+            <a href="{reset_link}">Reset Password</a>
+            <p>Reset Code: <strong>{reset_code}</strong></p>
+            <p>This code will expire in 1 hour.</p>
+            <p><em>If you didn't request this, please ignore this email.</em></p>
+          </body>
+        </html>
+        """
+        
+        part1 = MIMEText(text, "plain")
+        part2 = MIMEText(html, "html")
+        message.attach(part1)
+        message.attach(part2)
+        
+        with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, email, message.as_string())
+        
+        print(f"✓ Password reset email sent to {email}")
+        return True
+    except Exception as e:
+        print(f"✗ Error sending password reset email: {e}")
+        return False
+
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
     """Register a new user account"""
@@ -434,7 +493,14 @@ def reset_password():
         if "password_reset_expires" in user:
             from datetime import timedelta
             current_time = datetime.now(timezone.utc)
-            expiry_time = user["password_reset_expires"] + timedelta(hours=1)
+            reset_expires = user["password_reset_expires"]
+            
+            # Ensure reset_expires is timezone-aware
+            if reset_expires and hasattr(reset_expires, 'tzinfo') and reset_expires.tzinfo is None:
+                # If naive, assume UTC
+                reset_expires = reset_expires.replace(tzinfo=timezone.utc)
+            
+            expiry_time = reset_expires + timedelta(hours=1)
             
             if current_time > expiry_time:
                 return {
@@ -443,12 +509,17 @@ def reset_password():
                 }, 400
         
         # Check if new password is the same as current password
-        import bcrypt
-        if bcrypt.checkpw(new_password.encode('utf-8'), user['password']):
-            return {
-                "success": False,
-                "message": "You cannot keep this as your new password. Please choose a different password."
-            }, 400
+        try:
+            import bcrypt
+            if bcrypt.checkpw(new_password.encode('utf-8'), user['password']):
+                return {
+                    "success": False,
+                    "message": "You cannot keep this as your new password. Please choose a different password."
+                }, 400
+        except Exception as e:
+            print(f"Error checking password: {e}")
+            # If bcrypt check fails, proceed anyway
+            pass
         
         # Hash new password
         hashed_password = hash_password(new_password)
@@ -474,6 +545,9 @@ def reset_password():
         }, 200
         
     except Exception as e:
+        print(f"Reset password error: {e}")
+        import traceback
+        traceback.print_exc()
         return {
             "success": False,
             "message": "An error occurred. Please try again."
