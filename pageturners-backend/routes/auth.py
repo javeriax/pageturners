@@ -324,3 +324,157 @@ def logout():
             "success": False,
             "message": str(e)
         }, 500
+
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    """Send password reset email to user"""
+    try:
+        from backend_app import db
+        
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return {
+                "success": False,
+                "message": "Email is required"
+            }, 400
+        
+        users_collection = db["users"]
+        user = users_collection.find_one({"email": email})
+        
+        # For security: don't reveal whether email exists or not
+        if not user:
+            return {
+                "success": True,
+                "message": "If this email exists in our system, you will receive a password reset link."
+            }, 200
+        
+        # Generate password reset code (6-character hex code)
+        reset_code = secrets.token_hex(3).upper()
+        
+        # Store reset code with timestamp (expires in 1 hour)
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {
+                "$set": {
+                    "password_reset_code": reset_code,
+                    "password_reset_expires": datetime.now(timezone.utc),
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        # Send password reset email
+        email_sent = send_password_reset_email(email, reset_code)
+        
+        if not email_sent:
+            return {
+                "success": False,
+                "message": "Failed to send password reset email. Please try again."
+            }, 500
+        
+        return {
+            "success": True,
+            "message": "If this email exists in our system, you will receive a password reset link."
+        }, 200
+        
+    except Exception as e:
+        print(f"Forgot password error: {e}")
+        return {
+            "success": False,
+            "message": "An error occurred. Please try again."
+        }, 500
+
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    """Reset user password with reset code"""
+    try:
+        from backend_app import db
+        from datetime import timedelta
+        
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        reset_code = data.get('reset_code', '').strip().upper()
+        new_password = data.get('new_password', '').strip()
+        
+        # Validate all fields are present
+        if not email or not reset_code or not new_password:
+            return {
+                "success": False,
+                "message": "Email, reset code, and new password are required"
+            }, 400
+        
+        # Validate password strength (at least 8 characters)
+        if len(new_password) < 8:
+            return {
+                "success": False,
+                "message": "Password must be at least 8 characters long"
+            }, 400
+        
+        users_collection = db["users"]
+        user = users_collection.find_one({"email": email})
+        
+        if not user:
+            return {
+                "success": False,
+                "message": "Invalid email or reset code"
+            }, 400
+        
+        # Check if reset code exists and matches
+        if user.get("password_reset_code") != reset_code:
+            return {
+                "success": False,
+                "message": "Invalid or expired reset code"
+            }, 400
+        
+        # Check if reset code has expired (1 hour)
+        if "password_reset_expires" in user:
+            from datetime import timedelta
+            current_time = datetime.now(timezone.utc)
+            expiry_time = user["password_reset_expires"] + timedelta(hours=1)
+            
+            if current_time > expiry_time:
+                return {
+                    "success": False,
+                    "message": "Reset code has expired. Please request a new one."
+                }, 400
+        
+        # Check if new password is the same as current password
+        import bcrypt
+        if bcrypt.checkpw(new_password.encode('utf-8'), user['password']):
+            return {
+                "success": False,
+                "message": "You cannot keep this as your new password. Please choose a different password."
+            }, 400
+        
+        # Hash new password
+        hashed_password = hash_password(new_password)
+        
+        # Update password and remove reset code
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {
+                "$set": {
+                    "password": hashed_password,
+                    "updated_at": datetime.now(timezone.utc)
+                },
+                "$unset": {
+                    "password_reset_code": "",
+                    "password_reset_expires": ""
+                }
+            }
+        )
+        
+        return {
+            "success": True,
+            "message": "Password reset successfully. You can now log in with your new password."
+        }, 200
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "message": "An error occurred. Please try again."
+        }, 500

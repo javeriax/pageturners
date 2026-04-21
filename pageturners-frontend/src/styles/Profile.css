@@ -1,0 +1,359 @@
+
+/* Profile page styling for settings and user profile management */
+
+.profile-page {
+    min-height: 100vh;
+    background-color: #f5f1e8;
+}
+
+.dashboard-header {
+    background-color: #fff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0d7c3;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.logo-icon {
+    font-size: 1.8rem;
+}
+
+.header-nav {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    color: #666;
+    transition: color 0.2s;
+}
+
+.nav-btn:hover {
+    color: #333;
+}
+
+.logout-btn {
+    color: #c0392b;
+    font-weight: 600;
+}
+
+.profile-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 2rem auto;
+    gap: 2rem;
+    padding: 0 2rem;
+}
+
+.settings-sidebar {
+    width: 200px;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.settings-sidebar h3 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+.sidebar-btn {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    color: #666;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.sidebar-btn:hover {
+    background-color: #f5f1e8;
+    color: #333;
+}
+
+.profile-content {
+    flex: 1;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+.profile-section,
+.account-section,
+.password-section {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e0d7c3;
+}
+
+.profile-section:last-child,
+.account-section:last-child,
+.password-section:last-child {
+    border-bottom: none;
+}
+
+.profile-content h2 {
+    color: #333;
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.profile-input,
+.profile-textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #d0c5b9;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: #333;
+    transition: border-color 0.2s;
+}
+
+.profile-input:focus,
+.profile-textarea:focus {
+    outline: none;
+    border-color: #8b7355;
+    box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.1);
+}
+
+.profile-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.save-btn {
+    background-color: #8b7355;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.save-btn:hover:not(:disabled) {
+    background-color: #6f5945;
+}
+
+.save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Picture Upload */
+.picture-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.picture-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.profile-pic-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #d0c5b9;
+}
+
+.profile-pic-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #e8e0d5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    border: 3px solid #d0c5b9;
+}
+
+.upload-btn {
+    background-color: #fff;
+    border: 1px solid #d0c5b9;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+}
+
+.upload-btn:hover {
+    background-color: #f5f1e8;
+}
+
+.upload-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Messages */
+.error-message {
+    background-color: #fde0e0;
+    color: #d32f2f;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    margin-top: 0.8rem;
+    font-size: 0.9rem;
+}
+
+.success-message {
+    background-color: #e0f2e0;
+    color: #2e7d32;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    margin-top: 0.8rem;
+    font-size: 0.9rem;
+}
+
+.profile-loading,
+.profile-error {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-container {
+        flex-direction: column;
+        padding: 0 1rem;
+    }
+
+    .settings-sidebar {
+        width: 100%;
+        position: static;
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .settings-sidebar h3 {
+        display: none;
+    }
+
+    .sidebar-btn {
+        flex: 1;
+        margin-bottom: 0;
+    }
+
+    .profile-content {
+        padding: 1.5rem;
+    }
+}
+
+/* Edit mode styles */
+.field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.edit-icon-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #8b7355;
+    padding: 0.25rem 0.5rem;
+    transition: color 0.2s;
+}
+
+.edit-icon-btn:hover {
+    color: #6f5945;
+}
+
+.view-only-text {
+    padding: 0.8rem;
+    background-color: #f5f1e8;
+    border: 1px solid #d0c5b9;
+    border-radius: 6px;
+    color: #333;
+    font-size: 0.95rem;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.edit-btn {
+    background-color: #8b7355;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+}
+
+.edit-btn:hover {
+    background-color: #6f5945;
+}
+
+.cancel-btn {
+    background-color: #ccc;
+    color: #333;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+    background-color: #bbb;
+}
