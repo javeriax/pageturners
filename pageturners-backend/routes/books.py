@@ -104,7 +104,7 @@ def search_books():
         
         if genres:
             genre_list = [g.strip() for g in genres.split(',')]
-            filter_query["genre"] = {"$in": genre_list}
+            filter_query["genre"] = {"$all": genre_list}
         
         # Get total count
         total = books_collection.count_documents(filter_query)
