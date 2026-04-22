@@ -280,7 +280,7 @@ const Profile = () => {
                         <div className="form-group">
                             <div className="field-header">
                                 <label>Bio</label>
-                                <button 
+                                <button
                                     className="edit-icon-btn"
                                     onClick={() => toggleEditMode('bio')}
                                     title={editMode.bio ? 'Cancel' : 'Edit'}
@@ -311,7 +311,7 @@ const Profile = () => {
                         <div className="form-group">
                             <div className="field-header">
                                 <label>Username</label>
-                                <button 
+                                <button
                                     className="edit-icon-btn"
                                     onClick={() => toggleEditMode('username')}
                                     title={editMode.username ? 'Cancel' : 'Edit'}
@@ -348,7 +348,7 @@ const Profile = () => {
                         <div className="form-group">
                             <div className="field-header">
                                 <label>Email Address</label>
-                                <button 
+                                <button
                                     className="edit-icon-btn"
                                     onClick={() => toggleEditMode('email')}
                                     title={editMode.email ? 'Cancel' : 'Edit'}
@@ -409,7 +409,7 @@ const Profile = () => {
                                 <button onClick={handleChangePassword} disabled={passwordLoading} className="save-btn">
                                     {passwordLoading ? 'Updating...' : 'Update Password'}
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => toggleEditMode('password')}
                                     className="cancel-btn"
                                 >
@@ -417,7 +417,7 @@ const Profile = () => {
                                 </button>
                             </>
                         ) : (
-                            <button 
+                            <button
                                 className="edit-btn"
                                 onClick={() => toggleEditMode('password')}
                             >
@@ -426,6 +426,29 @@ const Profile = () => {
                         )}
                         {passwordError && <div className="error-message">{passwordError}</div>}
                         {passwordSuccess && <div className="success-message">{passwordSuccess}</div>}
+                    </div>
+                    {/* LOGOUT SECTION */}
+                    <div id="logout-section" style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #eaeaea' }}>
+                        <button
+                            className="logout-btn danger-btn"
+                            style={{ backgroundColor: '#dc3545', color: 'white', padding: '10px 20px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                            onClick={async () => {
+                                try {
+                                    // Use the same logout logic you already have in the header
+                                    await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/auth/logout`, {
+                                        method: 'POST',
+                                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                                    });
+                                } catch (e) {
+                                    // still logout on frontend even if backend call fails
+                                    console.error("Logout failed on backend", e);
+                                }
+                                localStorage.removeItem('token');
+                                navigate('/login');
+                            }}
+                        >
+                            Log Out of Account
+                        </button>
                     </div>
                 </div>
             </div>
