@@ -1,13 +1,18 @@
-// Dashboard.jsx
-// main dashboard page shown after login - UC3, UC10
-// shows 3 featured book rows each displaying 5 books at a time
-// genre filter is a searchable dropdown on the right side
-// search works in real time - no search button needed
+// UC3,10
+// Main dashboard page shown after login: displays 3 featured book sections + search/filter UI
+// 
+// Featured Sections:
+// 1. Popular Picks - books with highest review count & good avg ratings (from reviews aggregation)
+// 2. New Arrivals - newest books added to database (sorted by created_at desc)
+// 3. More to Explore - random selection for discovery (refreshes each load)
+//
+// Search/Filter: Real-time keyword search + multi-select genre filtering 
+// Each section scrolls horizontally showing 5 books visible at once (20 total per row)
 
 import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { searchBooks, getInitialBooks, getGenres } from '../api/books';
+import { searchBooks, getInitialBooks, getGenres } from '../api/dashboard';
 import '../styles/Dashboard.css';
 import BookCard from '../components/BookCard';
 
@@ -257,7 +262,7 @@ export default function Dashboard() {
     };
 
 
-  
+
     // genres filtered and sorted: Selected > Exact Match > Starts With > Alpha
     const filteredGenres = availableGenres
         .filter(genre => {
@@ -317,7 +322,9 @@ export default function Dashboard() {
     };
 
 
-    // horizontal scrollable genre row - shows 5 books at a time
+    // horizontal scrollable row component for featured book sections
+    // shows 5 books visible with scroll buttons, 20 total books per row
+    // all cards have uniform height (322px) so titles align in same visual row
     const GenreRow = ({ genre, books }) => {
         const rowRef = useRef(null);
 
@@ -577,11 +584,11 @@ export default function Dashboard() {
                     </div>
 
                 ) : (
-                    /* featured books view - 3 rows only */
+                    /* featured books view - 3 rows with optimized sorting */
                     <div className="featured-section">
                         <div className="featured-header">
-                            <h2 className="section-title">Discover Books</h2>
-                            <p className="section-subtitle">Browse our collection</p>
+                            <h2 className="section-title">Featured Books</h2>
+                            <p className="section-subtitle">Browse our Collection </p>
                         </div>
 
                         {loadingFeatured && (
@@ -597,15 +604,18 @@ export default function Dashboard() {
                             </div>
                         )}
 
-                        {/* 3 fixed rows - will be replaced with top rated later */}
+                        {/* 3 featured rows with improved sorting logic */}
                         {!loadingFeatured && !featuredError && (
                             <div className="genre-rows-container">
+                                {/* Row 1: Popular Picks - books with most reviews & high avg rating */}
                                 {featuredBooks.row1?.length > 0 && (
-                                    <GenreRow genre="New Arrivals" books={featuredBooks.row1} />
+                                    <GenreRow genre="Popular Picks" books={featuredBooks.row1} />
                                 )}
+                                {/* Row 2: New Arrivals - newest books added to database */}
                                 {featuredBooks.row2?.length > 0 && (
-                                    <GenreRow genre="Popular Picks" books={featuredBooks.row2} />
+                                    <GenreRow genre="New Arrivals" books={featuredBooks.row2} />
                                 )}
+                                {/* Row 3: More to Explore - random selection for discovery */}
                                 {featuredBooks.row3?.length > 0 && (
                                     <GenreRow genre="More to Explore" books={featuredBooks.row3} />
                                 )}

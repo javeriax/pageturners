@@ -8,21 +8,11 @@ load_dotenv()
 
 books_bp = Blueprint('books', __name__, url_prefix='/api/books')
 
-# Get database connection
-# def get_db():
-#     try:
-#         client = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=5000)
-#         client.admin.command('ping')
-#         return client["pageturners"]
-#     except Exception as e:
-#         print(f"Database connection error: {e}")
-#         return None
-
-# INITIAL BOOKS ENDPOINT
+# INITIAL BOOKS ENDPOINT 
 @books_bp.route('/initial', methods=['GET'])
 @jwt_required()
 def get_initial_books():
-    """Fetch initial 3 rows of books for dashboard"""
+    """Fetch initial 3 rows of books for dashboard with smart sorting"""
     try:
         db = current_app.db
         if db is None:
@@ -30,15 +20,74 @@ def get_initial_books():
         
         books_collection = db["books"]
         
-        # Get 20 books for each row (3 rows total = 60 books)
-        row1 = list(books_collection.find().limit(20))
-        row2 = list(books_collection.find().skip(20).limit(20))
-        row3 = list(books_collection.find().skip(40).limit(20))
+        # Row 1: Popular Picks - books sorted by review count + average rating
+        # Uses aggregation to count reviews and calculate avg rating per book
+        popular_pipeline = [
+            {
+                "$lookup": {
+                    "from": "reviews",
+                    "localField": "_id",
+                    "foreignField": "book_id",
+                    "as": "reviews"
+                }
+            },
+            {
+                "$addFields": {
+                    "review_count": {"$size": "$reviews"},
+                    "avg_rating": {
+                        "$cond": [
+                            {"$gt": [{"$size": "$reviews"}, 0]},
+                            {"$avg": "$reviews.rating"},
+                            0
+                        ]
+                    }
+                }
+            },
+            {"$match": {"review_count": {"$gt": 0}}},
+            {"$sort": {"review_count": -1, "avg_rating": -1}},
+            {"$limit": 20},
+            {
+                "$project": {
+                    "reviews": 0  # remove nested reviews array before converting
+                }
+            }
+        ]
+        row1 = list(books_collection.aggregate(popular_pipeline))
         
-        # Convert ObjectId to string for JSON serialization
-        for row in [row1, row2, row3]:
-            for book in row:
-                book['_id'] = str(book['_id'])
+        # Row 2: New Arrivals - newest books by created_at field
+        # Tries created_at first, falls back to _id ordering if field doesn't exist
+        try:
+            row2 = list(books_collection.find()
+                       .sort([("created_at", -1)])
+                       .limit(20))
+        except:
+            row2 = list(books_collection.find()
+                       .sort([("_id", -1)])
+                       .limit(20))
+        
+        # Row 3: More to Explore - random book selection for discovery
+        # Uses MongoDB $sample stage for efficient random sampling
+        total_count = books_collection.count_documents({})
+        if total_count > 0:
+            random_pipeline = [{"$sample": {"size": min(20, total_count)}}]
+            row3 = list(books_collection.aggregate(random_pipeline))
+        else:
+            row3 = []
+        
+        # Convert all ObjectId fields to strings for JSON serialization
+        def convert_objectids(obj):
+            """Recursively convert ObjectId to string in nested structures"""
+            from bson import ObjectId
+            if isinstance(obj, list):
+                return [convert_objectids(item) for item in obj]
+            elif isinstance(obj, dict):
+                return {k: str(v) if isinstance(v, ObjectId) else convert_objectids(v) 
+                        for k, v in obj.items()}
+            return obj
+        
+        row1 = convert_objectids(row1)
+        row2 = convert_objectids(row2)
+        row3 = convert_objectids(row3)
         
         return {
             "success": True,
