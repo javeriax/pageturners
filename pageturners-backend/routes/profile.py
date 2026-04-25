@@ -298,11 +298,30 @@ def change_password():
                 "message": "Current password and new password are required"
             }, 400
         
-        # FR7.3: Validate new password minimum length
+        # FR7.3: Validate new password minimum length and complexity
+        import re
         if len(new_password) < 8:
             return {
                 "success": False,
                 "message": "New password must be at least 8 characters"
+            }, 400
+        
+        if not re.search(r'[a-z]', new_password):
+            return {
+                "success": False,
+                "message": "Password must contain at least one lowercase letter"
+            }, 400
+        
+        if not re.search(r'[A-Z]', new_password):
+            return {
+                "success": False,
+                "message": "Password must contain at least one uppercase letter"
+            }, 400
+        
+        if not re.search(r'\d', new_password):
+            return {
+                "success": False,
+                "message": "Password must contain at least one number"
             }, 400
         
         users_collection = db["users"]
