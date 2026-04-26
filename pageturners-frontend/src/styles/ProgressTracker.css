@@ -13,7 +13,7 @@
 
 .progress-bar-fill {
     height: 100%;
-    background: var(--blush, #C9A99A);
+    background: var(--blush, #c99a9a);
     border-radius: 999px;
     transition: width 0.35s ease;
 }
@@ -35,6 +35,10 @@
 .page-input:focus {
     border-color: var(--blush, #C9A99A);
     box-shadow: 0 0 0 3px rgba(201, 169, 154, 0.12);
+    width: 50px;        
+    min-width: 70px;
+    padding: 6px 8px;
+    font-size: 14px;
 }
 
 .save-progress-btn {
@@ -43,7 +47,7 @@
     border-radius: 999px;
     border: none;
     background: var(--espresso, #2C1F14);
-    color: var(--linen, #F5F0E8);
+    color: var(--linen, #f5e8f3);
     font-size: 12px;
     font-weight: 500;
     font-family: var(--font-sans, 'Jost', 'Segoe UI', sans-serif);
@@ -58,4 +62,11 @@
 .save-progress-btn.saved {
     background: #5A8C5E;
     transform: scale(1.03);
+}
+
+/* Hide number input spinner arrows(the browser's default number input spinner) */
+.page-input::-webkit-outer-spin-button,
+.page-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
