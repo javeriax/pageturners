@@ -130,7 +130,7 @@ def test_api_structure(client, mock_db, auth_header):
     response = client.get('/api/books?search=Test', headers=auth_header)
     book = response.get_json()["data"][0]
     
-    # Check for fields required by TC-API-03 [cite: 155]
+    # Check for fields required by TC-API-03 
     assert "book_id" in book
     assert "title" in book
     assert "author_name" in book

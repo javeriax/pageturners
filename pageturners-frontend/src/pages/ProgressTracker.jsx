@@ -20,8 +20,8 @@ const ReadingProgress = ({ book, onUpdate }) => {
     // Handle saving progress to backend (upon pressing "Save" button)
     const handleSave = async () => {
         if (loading) return; // Prevent multiple clicks
-
-        if (currentPage === '' || currentPage < 0 || currentPage > totalPages) {
+        const pageNum = Number(currentPage);
+       if (currentPage === '' || isNaN(pageNum) || pageNum < 0 || pageNum > totalPages) {
             setError("Enter a valid page number");
             return;
         }
@@ -33,10 +33,10 @@ const ReadingProgress = ({ book, onUpdate }) => {
         setLoading(true); // Show loading state on button
 
         try {
-            const result = await updateProgress(book._id, currentPage);
+            const result = await updateProgress(book._id, pageNum);
 
             if (result.success) {
-                onUpdate(book._id, currentPage);
+                onUpdate(book._id, pageNum); 
             } else {
                 setError(result.message);
             }

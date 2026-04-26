@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getBookDetails, submitReview, deleteReview, addToLibrary } from '../api/books';
 import '../styles/BookDetails.css';
+import { Swords } from 'lucide-react';
 
 const BookDetails = () => {
     const { id } = useParams();
@@ -159,8 +160,8 @@ const BookDetails = () => {
                     <span className="logo-icon">📚</span>
                     <span className="logo-text">PageTurners</span>
                 </div>
+                <nav className="header-nav"></nav>
                 <nav className="header-nav">
-
                     <button className="nav-btn" onClick={() => navigate('/library')}>My Library</button>
                     <button className="nav-btn" onClick={() => navigate('/profile')}>Profile</button>
                     <button className="nav-btn logout-btn" onClick={() => {
@@ -169,16 +170,20 @@ const BookDetails = () => {
                     }}>
                         Logout
                     </button>
+                    
                 </nav>
             </header>
             {/* breadcrumb */}
             <p className="book-breadcrumb">
                 Browse › <span>{genres[0]}</span> › {book.title}
             </p>
+            <button className="back-btn" onClick={() => navigate('/dashboard')}>
+            ← Back to Dashboard
+        </button>
             {/*warm beige strip with cover + info ── */}
             <div className="book-hero">
                 <div className="book-hero-inner">
-
+                    
                     {/* LEFT: cover image */}
                     <div className="book-cover-col">
                         {book.cover_image ? (
@@ -423,19 +428,9 @@ const BookDetails = () => {
                         No reviews yet — be the first to share your thoughts!
                     </div>
                 )}
-                {/* back button */}
-                <div style={{ width: '100%', gridColumn: '1/-1' }}>
-                    <button className="back-btn" onClick={() => navigate(-1)}>
-                        <span className="back-arrow">←</span> Back to results
-                    </button>
-                </div>
-            </div>
+            </div>        
         </div>
     );
 };
-
-
-
-
 
 export default BookDetails;
