@@ -41,8 +41,7 @@ def submit_review(book_id):
         if not isinstance(rating, int) or rating < 1 or rating > 5:
             return {"success": False, "message": "Rating must be between 1 and 5"}, 400
         
-        if not review_text:
-            return {"success": False, "message": "Review text cannot be empty"}, 400
+        #review text is optional
         
         # Check if book exists
         books_collection = db["books"]

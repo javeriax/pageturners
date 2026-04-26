@@ -14,6 +14,7 @@ const Profile = () => {
 
     // FR6.1: Profile section state
     const [bio, setBio] = useState('');
+    const [bioCharCount, setBioCharCount] = useState(0);
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [profilePicture, setProfilePicture] = useState('');
@@ -54,6 +55,7 @@ const Profile = () => {
             if (result.success) {
                 setProfile(result.data);
                 setBio(result.data.bio || '');
+                setBioCharCount((result.data.bio || '').length);
                 setUsername(result.data.username || '');
                 setEmail(result.data.email || '');
                 setProfilePicture(result.data.profile_picture || '');
@@ -84,6 +86,11 @@ const Profile = () => {
         setBioError('');
         setBioSuccess('');
         setBioLoading(true);
+        if (bio.length > 150) {
+            setBioError('Please make sure your bio doesnt exceed 150 characters please:)');
+            setBioLoading(false);
+            return;
+        }
 
         const result = await updateProfile({ bio });
 
@@ -102,7 +109,28 @@ const Profile = () => {
         setUsernameError('');
         setUsernameSuccess('');
         setUsernameLoading(true);
-
+    
+        if (!username.trim()) {
+            setUsernameError('Username cannot be empty');
+            setUsernameLoading(false);
+            return;
+        }
+        if (username.length > 20) {
+            setUsernameError('oops!! you cannot exceed 20 characters 😢');
+            setUsernameLoading(false);
+            return;
+        }
+        if (username.length < 3) {
+            setUsernameError('Username must be at least 3 characters 🥲');
+            setUsernameLoading(false);
+            return;
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            setUsernameError('Username can only contain letters, numbers, and underscores 🥹');
+            setUsernameLoading(false);
+            return;
+        }
+    
         const result = await updateProfile({ username });
 
         if (result.success) {
@@ -135,7 +163,7 @@ const Profile = () => {
         const result = await updateProfile({ email });
 
         if (result.success) {
-            setEmailSuccess('Verification email sent! Please verify your new email address.');
+            setEmailSuccess('Verification email sent to your new address! Please verify it to complete the change.');
             setEditMode(prev => ({ ...prev, email: false })); // ← Exit edit mode
             setTimeout(() => setEmailSuccess(''), 5000);
         } else {
@@ -310,10 +338,17 @@ const Profile = () => {
                                 <>
                                     <textarea
                                         value={bio}
-                                        onChange={(e) => setBio(e.target.value)}
-                                        placeholder="Tell us about yourself"
+                                        onChange={(e) => {
+                                            setBio(e.target.value);
+                                            setBioCharCount(e.target.value.length);
+                                        }}
+                                        placeholder="Write about your self <3"
                                         className="profile-textarea"
+                                        maxLength={150}
                                     />
+                                    <div className={`char-counter ${bioCharCount > 130 ? 'char-counter-warning' : ''} ${bioCharCount >= 150 ? 'char-counter-limit' : ''}`}>
+                                        {bioCharCount}/150
+                                    </div>
                                     <button onClick={handleSaveBio} disabled={bioLoading} className="save-btn">
                                         {bioLoading ? 'Saving...' : 'Save'}
                                     </button>
