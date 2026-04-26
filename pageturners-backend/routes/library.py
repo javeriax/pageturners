@@ -311,7 +311,7 @@ def update_progress(book_id):
 
         #4. Validate new_page is a non-negative integer and does not exceed total pages
         if new_page is None or not isinstance(new_page, int) or new_page < 0 or new_page > total_pages:
-            print("🔥 RETURNING 400 - INVALID PAGE", flush=True)
+            print("RETURNING 400 - INVALID PAGE", flush=True)
             return {"success": False, "message": "Valid page number is required"}, 400
 
         # 5. Update the progress in MongoDB and ensure the book is in user's library

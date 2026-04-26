@@ -37,7 +37,8 @@ for genre in genres:
                 continue
             if not info.get("imageLinks", {}).get("thumbnail"):
                 continue
-
+            if not info.get("pageCount",0):
+                continue
             book = {
                 "title": info.get("title", "Unknown"),
                 "author_name": ", ".join(info.get("authors", ["Unknown"])),

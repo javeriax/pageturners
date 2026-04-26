@@ -322,6 +322,12 @@ def login():
             "message": "Invalid email or password"
         }, 401
 
+    if not user.get("is_verified", False):
+        return {
+            "success": False,
+            "message": "Please verify your email address before logging in"
+        }, 403
+
     token = create_access_token(identity=str(user['_id']))
 
     return {
@@ -466,11 +472,30 @@ def reset_password():
                 "message": "Email, reset code, and new password are required"
             }, 400
         
-        # Validate password strength (at least 8 characters)
+        # Validate password strength (at least 8 characters, uppercase, lowercase, number)
+        import re
         if len(new_password) < 8:
             return {
                 "success": False,
                 "message": "Password must be at least 8 characters long"
+            }, 400
+        
+        if not re.search(r'[a-z]', new_password):
+            return {
+                "success": False,
+                "message": "Password must contain at least one lowercase letter"
+            }, 400
+        
+        if not re.search(r'[A-Z]', new_password):
+            return {
+                "success": False,
+                "message": "Password must contain at least one uppercase letter"
+            }, 400
+        
+        if not re.search(r'\d', new_password):
+            return {
+                "success": False,
+                "message": "Password must contain at least one number"
             }, 400
         
         users_collection = db["users"]

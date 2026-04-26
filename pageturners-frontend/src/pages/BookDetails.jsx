@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getBookDetails, submitReview, deleteReview, addToLibrary } from '../api/books';
 import '../styles/BookDetails.css';
+import { Swords } from 'lucide-react';
 
 const BookDetails = () => {
     const { id } = useParams();
@@ -23,11 +24,19 @@ const BookDetails = () => {
     const [deleteConfirm, setDeleteConfirm] = useState(null); // holds review_id to delete
     const [deleteError, setDeleteError] = useState('');
     const [currentUserId, setCurrentUserId] = useState('');
+    const [expandedReviewId, setExpandedReviewId] = useState(null);
+        // Define a maximum length for review text before truncating
+    const maxLength = 200;
 
     // US.7: Add to Library state
     const [isInLibrary, setIsInLibrary] = useState(false);
     const [addingToLibrary, setAddingToLibrary] = useState(false);
     const [addLibraryError, setAddLibraryError] = useState('');
+    const truncateText = (text, maxLength = 300) => {
+        if (!text) return { text: '', isTruncated: false };
+        if (text.length <= maxLength) return { text, isTruncated: false };
+        return { text: text.substring(0, maxLength) + '...', isTruncated: true };
+    };
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -60,16 +69,8 @@ const BookDetails = () => {
         setReviewError('');
         setSubmitSuccess('');
 
-        // VALIDATION: Validate rating selected and review text)
-        if (!selectedStars) {
-            setReviewError('Please select a rating before submitting');
-            return;
-        }
+        
 
-        if (!reviewText.trim()) {
-            setReviewError('Please write a review before submitting');
-            return;
-        }
 
         setSubmitting(true);
 
@@ -130,6 +131,10 @@ const BookDetails = () => {
         }
     };
 
+
+
+
+
     // US.7: Handle adding book to library
     const handleAddToLibrary = async () => {
         setAddLibraryError('');
@@ -159,8 +164,8 @@ const BookDetails = () => {
                     <span className="logo-icon">📚</span>
                     <span className="logo-text">PageTurners</span>
                 </div>
+                <nav className="header-nav"></nav>
                 <nav className="header-nav">
-
                     <button className="nav-btn" onClick={() => navigate('/library')}>My Library</button>
                     <button className="nav-btn" onClick={() => navigate('/profile')}>Profile</button>
                     <button className="nav-btn logout-btn" onClick={() => {
@@ -169,16 +174,20 @@ const BookDetails = () => {
                     }}>
                         Logout
                     </button>
+                    
                 </nav>
             </header>
             {/* breadcrumb */}
             <p className="book-breadcrumb">
                 Browse › <span>{genres[0]}</span> › {book.title}
             </p>
+            <button className="back-btn" onClick={() => navigate('/dashboard')}>
+            ← Back to Dashboard
+        </button>
             {/*warm beige strip with cover + info ── */}
             <div className="book-hero">
                 <div className="book-hero-inner">
-
+                    
                     {/* LEFT: cover image */}
                     <div className="book-cover-col">
                         {book.cover_image ? (
@@ -393,6 +402,9 @@ const BookDetails = () => {
                                     <span className="review-stars">
                                         {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                                     </span>
+
+
+
                                     {/* KLYRA-62: Delete button only on logged-in user's own review */}
                                     {review.user_id === currentUserId && (
                                         <button
@@ -415,7 +427,30 @@ const BookDetails = () => {
                                     })}
                                 </p>
                             )}
-                            <p className="review-text">{review.review_text}</p>
+                            {/* SHOW MORE CHANGES - TESTING RN */} 
+                            {/* <p className="review-text">{review.review_text}</p> */} 
+                            {(() => {
+    const { text, isTruncated } = truncateText(review.review_text, 200);
+    const reviewId = review.review_id || String(i);
+    const isExpanded = expandedReviewId === reviewId;
+    return (
+        <>
+            <p className="review-text">
+                {isExpanded ? review.review_text : text}
+            </p>
+            {isTruncated && (
+                <button
+                    className="show-more-btn"
+                    onClick={() => setExpandedReviewId(
+                        isExpanded ? null : reviewId
+                    )}
+                >
+                    {isExpanded ? 'Show less' : 'Show more'}
+                </button>
+            )}
+        </>
+    );
+})()}
                         </div>
                     ))
                 ) : (
@@ -423,19 +458,9 @@ const BookDetails = () => {
                         No reviews yet — be the first to share your thoughts!
                     </div>
                 )}
-                {/* back button */}
-                <div style={{ width: '100%', gridColumn: '1/-1' }}>
-                    <button className="back-btn" onClick={() => navigate(-1)}>
-                        <span className="back-arrow">←</span> Back to results
-                    </button>
-                </div>
-            </div>
+            </div>        
         </div>
     );
 };
-
-
-
-
 
 export default BookDetails;
