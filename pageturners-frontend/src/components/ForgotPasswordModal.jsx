@@ -63,6 +63,12 @@ export default function ForgotPasswordModal({ isOpen, onClose }) {
             errors.newPassword = 'New password is required';
         } else if (newPassword.length < 8) {
             errors.newPassword = 'Password must be at least 8 characters long';
+        } else if (!/(?=.*[a-z])/.test(newPassword)) {
+            errors.newPassword = 'Password must contain at least one lowercase letter';
+        } else if (!/(?=.*[A-Z])/.test(newPassword)) {
+            errors.newPassword = 'Password must contain at least one uppercase letter';
+        } else if (!/(?=.*\d)/.test(newPassword)) {
+            errors.newPassword = 'Password must contain at least one number';
         }
 
         if (!confirmPassword) {

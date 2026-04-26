@@ -1,13 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { loginUser } from '../api/auth';
 import { useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import React from 'react';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
+import ResetPasswordModal from '../components/ResetPasswordModal';
 import '../styles/Auth.css';
 
 // Login component for user authentication
 // This component handles the login form with validation and API integration
 export default function Login() {
+    // Get URL parameters to detect reset password link
+    const [searchParams] = useSearchParams();
+
     // loading: True when form is being submitted to backend. Used to disable button and show loading state
     const [loading, setLoading] = useState(false);
 
@@ -16,6 +21,13 @@ export default function Login() {
 
     // forgotPasswordModalOpen: Controls whether the forgot password modal is visible
     const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState(false);
+
+    // resetPasswordModalOpen: Controls whether the reset password modal is visible
+    const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
+
+    // resetEmail and resetCode: Store email and code from URL parameters for reset modal
+    const [resetEmail, setResetEmail] = useState('');
+    const [resetCode, setResetCode] = useState('');
 
     // formData: Stores all form field values. Each field updates this object as user types
     const [formData, setFormData] = useState({
@@ -28,6 +40,18 @@ export default function Login() {
     //used useRef to create a synchronous submission 
     // lock that prevents duplicate API calls during rapid user interactions.
     const isSubmitting = useRef(false);
+
+    // Detect reset password link and auto-open modal
+    useEffect(() => {
+        const email = searchParams.get('email');
+        const code = searchParams.get('code');
+
+        if (email && code) {
+            setResetEmail(email);
+            setResetCode(code);
+            setResetPasswordModalOpen(true);
+        }
+    }, [searchParams]);
     // validateForm: Checks all form fields and returns error messages for invalid fields
     // This runs when user clicks Login button
     const validateForm = () => {
@@ -218,6 +242,14 @@ export default function Login() {
                 <ForgotPasswordModal
                     isOpen={forgotPasswordModalOpen}
                     onClose={() => setForgotPasswordModalOpen(false)}
+                />
+
+                {/* Reset Password Modal (auto-opens when user clicks email reset link) */}
+                <ResetPasswordModal
+                    isOpen={resetPasswordModalOpen}
+                    onClose={() => setResetPasswordModalOpen(false)}
+                    email={resetEmail}
+                    resetCode={resetCode}
                 />
             </div>
         </div>

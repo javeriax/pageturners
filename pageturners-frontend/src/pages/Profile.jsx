@@ -156,6 +156,24 @@ const Profile = () => {
             return;
         }
 
+        if (!/(?=.*[a-z])/.test(newPassword)) {
+            setPasswordError('Password must contain at least one lowercase letter');
+            setPasswordLoading(false);
+            return;
+        }
+
+        if (!/(?=.*[A-Z])/.test(newPassword)) {
+            setPasswordError('Password must contain at least one uppercase letter');
+            setPasswordLoading(false);
+            return;
+        }
+
+        if (!/(?=.*\d)/.test(newPassword)) {
+            setPasswordError('Password must contain at least one number');
+            setPasswordLoading(false);
+            return;
+        }
+
         const result = await changePassword(currentPassword, newPassword);
 
         if (result.success) {
