@@ -1,217 +1,179 @@
-/* auth-container: The main page background
-   Fills entire viewport with book texture image
-   Centers the white registration card in the middle */
+/* Auth.css */
+/* Rhode aesthetic: linen backdrop, parchment card, espresso typography */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
+
 .auth-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #d4a574;
-    background-image: url('/background_texture_book_pg.jpg');
+    background-color: var(--linen, #F5F0E8);
+    background-image: url('/background_pic.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
     padding: 20px;
-    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Jost', 'Segoe UI', sans-serif;
     position: relative;
 }
 
-/* ::before pseudo-element adds beige/brown bar at bottom of page
-   This is the decorative accent bar inspired by book design */
 .auth-container::before {
     content: '';
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 8px;
-    background: linear-gradient(90deg, #d4a574 0%, #c9956f 50%, #d4a574 100%);
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+    height: 3px;
+    background: linear-gradient(90deg, var(--linen-deep, #E2D8C4) 0%, var(--blush, #C9A99A) 50%, var(--linen-deep, #E2D8C4) 100%);
 }
 
-/* auth-card: The white box holding the registration form
-   Has rounded corners and shadow for depth */
 .auth-card {
-    background: white;
+    background: var(--white, #FDFBF8);
+    border: 1px solid var(--linen-border, #D4C9B0);
     border-radius: 12px;
-    padding: 60px 40px;
+    padding: 56px 44px;
     width: 100%;
-    max-width: 500px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    max-width: 480px;
+    box-shadow: 0 8px 40px rgba(44, 31, 20, 0.10);
     position: relative;
     z-index: 1;
 }
 
-/* logo-section: Container for book icon and PageTurners title
-   Flexbox centers items vertically and horizontally */
+/* Logo */
 .logo-section {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 2.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 1rem;
 }
 
-/* logo-icon: Wrapper for the book icon SVG */
 .logo-icon {
-    width: 60px;
-    height: 60px;
+    width: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Sizing for the book icon */
-.logo-icon svg {
-    width: 100%;
-    height: 100%;
-}
+.logo-icon svg { width: 100%; height: 100%; }
 
-/* h1 in logo-section: The "PageTurners" title text
-   Uses serif font (Georgia) for literary feel
-   Brown gradient makes it elegant */
 .logo-section h1 {
-    font-size: 36px;
-    color: #1a1a1a;
+    font-size: 2.2rem;
+    font-weight: 300;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    color: var(--espresso, #2C1F14);
     margin: 0;
-    font-weight: 700;
-    letter-spacing: -0.8px;
-    font-family: 'Georgia', 'Times New Roman', serif;
-    background: linear-gradient(135deg, #5a4a42 0%, #3d2f2b 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    letter-spacing: 1px;
+    line-height: 1.1;
+    -webkit-text-fill-color: var(--espresso, #2C1F14);
+    background: none;
 }
 
 /* Messages */
 .message {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 4px;
-    margin-bottom: 24px;
-    font-size: 14px;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 13px;
     animation: slideIn 0.3s ease-out;
 }
 
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-.message-icon {
-    font-size: 16px;
-    font-weight: bold;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.message p {
-    margin: 0;
-    line-height: 1.5;
-}
+.message-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.message p { margin: 0; line-height: 1.5; }
 
 .success-message {
-    background-color: #d4edda;
-    border: 1px solid #c3e6cb;
-    color: #155724;
+    background: #EDF5EE;
+    border: 1px solid #C3D9C5;
+    color: #2D5E32;
 }
-
-.success-message .message-icon {
-    color: #28a745;
-}
+.success-message .message-icon { color: #3D8B45; }
 
 .error-message {
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-    color: #721c24;
+    background: var(--error-bg, #F5E8E8);
+    border: 1px solid var(--error-border, #D4B0B0);
+    color: var(--error, #9B4A4A);
 }
-
-.error-message .message-icon {
-    color: #dc3545;
-}
+.error-message .message-icon { color: var(--error, #9B4A4A); }
 
 /* Form */
-.auth-form {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
+.auth-form { display: flex; flex-direction: column; gap: 1.25rem; }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
+.form-group { display: flex; flex-direction: column; gap: 6px; }
 
 .form-group label {
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 500;
-    color: #333;
-    display: block;
+    color: var(--mocha, #5C4033);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
 }
 
 .form-group input {
-    padding: 11px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    font-family: inherit;
-    background-color: white;
+    padding: 11px 16px;
+    border: 1px solid var(--linen-border, #D4C9B0);
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: 'Jost', 'Segoe UI', sans-serif;
+    background: var(--white, #FDFBF8);
+    color: var(--espresso, #2C1F14);
+    transition: all 0.22s ease;
+    outline: none;
 }
 
 .form-group input::placeholder {
-    color: #999;
+    color: var(--oat, #B5A090);
+    font-style: italic;
 }
 
 .form-group input:focus {
-    outline: none;
-    border-color: #8B6F47;
-    box-shadow: 0 0 0 2px rgba(139, 111, 71, 0.1);
+    border-color: var(--blush, #C9A99A);
+    box-shadow: 0 0 0 3px rgba(201, 169, 154, 0.12);
 }
 
 .form-group input:disabled {
-    background-color: #f9f9f9;
+    background: var(--linen, #F5F0E8);
     cursor: not-allowed;
-    color: #999;
+    color: var(--latte, #8C7060);
 }
 
 .form-group input.input-error {
-    border-color: #dc3545;
-    background-color: #fff5f5;
+    border-color: var(--error, #9B4A4A);
+    background: var(--error-bg, #F5E8E8);
 }
 
 .form-group input.input-error:focus {
-    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1);
+    box-shadow: 0 0 0 3px rgba(155, 74, 74, 0.10);
 }
 
 .field-error {
     font-size: 12px;
-    color: #dc3545;
+    color: var(--error, #9B4A4A);
     margin: 0;
-    font-weight: 500;
+    font-style: italic;
     animation: slideIn 0.2s ease-out;
 }
 
 .password-hint {
     font-size: 12px;
-    color: #666;
+    color: var(--latte, #8C7060);
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.5;
+    font-style: italic;
 }
 
-/* Password label section with toggle button */
+/* Password label section */
 .password-label-section {
     display: flex;
     justify-content: space-between;
@@ -219,48 +181,41 @@
     gap: 8px;
 }
 
-.password-label-section label {
-    flex: 1;
-}
+.password-label-section label { flex: 1; }
 
-/* Requirements toggle button */
 .requirements-toggle {
     background: none;
     border: none;
-    color: #8B6F47;
-    font-size: 12px;
-    font-weight: 600;
+    color: var(--blush-dark, #B08878);
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'Jost', 'Segoe UI', sans-serif;
+    letter-spacing: 0.5px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 4px;
     padding: 2px 6px;
     border-radius: 3px;
-    transition: all 0.2s ease;
-    padding-right: 0;
+    transition: all 0.22s ease;
 }
 
-.requirements-toggle:hover {
-    background-color: rgba(139, 111, 71, 0.1);
-}
+.requirements-toggle:hover { background: rgba(201, 169, 154, 0.12); }
 
 .toggle-icon {
     display: inline-block;
     transition: transform 0.2s ease;
-    font-size: 10px;
+    font-size: 9px;
 }
+.toggle-icon.open { transform: rotate(90deg); }
 
-.toggle-icon.open {
-    transform: rotate(90deg);
-}
-
-/* Requirements checklist container */
+/* Requirements checklist */
 .requirements-checklist {
-    background-color: #faf8f4;
-    border: 1px solid #e8dcc8;
-    border-radius: 4px;
+    background: var(--linen, #F5F0E8);
+    border: 1px solid var(--linen-border, #D4C9B0);
+    border-radius: 6px;
     padding: 12px;
-    margin-top: 8px;
+    margin-top: 6px;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -268,37 +223,22 @@
 }
 
 @keyframes expandDown {
-    from {
-        opacity: 0;
-        max-height: 0;
-        overflow: hidden;
-    }
-
-    to {
-        opacity: 1;
-        max-height: 500px;
-    }
+    from { opacity: 0; max-height: 0; overflow: hidden; }
+    to   { opacity: 1; max-height: 500px; }
 }
 
-/* Individual requirement item */
 .requirement-item {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: #666;
+    color: var(--latte, #8C7060);
     transition: color 0.2s ease;
 }
 
-.requirement-item.met {
-    color: #8B6F47;
-}
+.requirement-item.met { color: var(--blush-dark, #B08878); }
+.requirement-item.met .checkmark { color: var(--blush-dark, #B08878); }
 
-.requirement-item.met .checkmark {
-    color: #8B6F47;
-}
-
-/* Checkmark styling */
 .requirement-item .checkmark {
     display: inline-flex;
     align-items: center;
@@ -306,86 +246,60 @@
     width: 16px;
     height: 16px;
     font-size: 10px;
-    color: #ccc;
+    color: var(--linen-border, #D4C9B0);
     font-weight: bold;
     transition: color 0.2s ease;
     flex-shrink: 0;
 }
 
-
 /* Submit Button */
 .auth-button {
     padding: 12px 16px;
-    background-color: #8B6F47;
-    color: white;
+    background: var(--espresso, #2C1F14);
+    color: var(--linen, #F5F0E8);
     border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Jost', 'Segoe UI', sans-serif;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 8px;
+    transition: all 0.22s ease;
+    margin-top: 0.5rem;
 }
 
-.auth-button:hover:not(:disabled) {
-    background-color: #705a3d;
-}
-
-.auth-button:active:not(:disabled) {
-    transform: scale(0.98);
-}
-
-.auth-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
+.auth-button:hover:not(:disabled) { background: var(--mocha, #5C4033); }
+.auth-button:active:not(:disabled) { transform: scale(0.98); }
+.auth-button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Footer Links */
 .auth-footer {
     text-align: center;
-    margin-top: 32px;
+    margin-top: 2rem;
     font-size: 13px;
-    color: #666;
+    color: var(--latte, #8C7060);
 }
 
 .auth-link {
-    color: #8B6F47;
+    color: var(--blush-dark, #B08878);
     text-decoration: none;
-    font-weight: 600;
-    transition: color 0.2s ease;
+    font-weight: 500;
     background: none;
     border: none;
     cursor: pointer;
     padding: 0;
     font-size: inherit;
     font-family: inherit;
+    transition: color 0.22s ease;
 }
 
-.auth-link:hover {
-    color: #0052a3;
-    text-decoration: underline;
-}
+.auth-link:hover { color: var(--mocha, #5C4033); text-decoration: underline; }
+.auth-link:focus { outline: none; }
+.auth-link:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.auth-link:focus {
-    outline: none;
-}
-
-.auth-link:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Responsive */
 @media (max-width: 480px) {
-    .auth-card {
-        padding: 40px 20px;
-    }
-
-    .logo-section h1 {
-        font-size: 28px;
-    }
-
-    .auth-form {
-        gap: 20px;
-    }
+    .auth-card { padding: 36px 20px; }
+    .logo-section h1 { font-size: 1.8rem; }
+    .auth-form { gap: 1rem; }
 }

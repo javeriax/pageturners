@@ -18,6 +18,8 @@ def is_valid_email(email):
     return re.match(pattern, email) is not None
 
 # Helper function to validate file type
+
+#profile.py
 def is_valid_image(base64_str):
     """FR8: Validate image file type from base64 string"""
     # Check for data:image/jpeg;base64, data:image/png;base64, etc.
@@ -171,12 +173,32 @@ def update_profile():
         update_data = {}
         
         # FR6.2: Update bio if provided
+        # FR6.2: Update bio if provided
         if "bio" in data:
-            update_data["bio"] = data["bio"].strip()
+            bio_text = data["bio"].strip()
+            if len(bio_text) > 150:
+                return {
+                    "success": False,
+                    "message": "Oopsies! Bio cannot exceed 150 characters :()"
+                }, 400
+            update_data["bio"] = bio_text
         
         # FR6.2: Update username if provided
         if "username" in data:
             new_username = data["username"].strip()
+
+            if not new_username:
+                return {"success": False, "message": "Username cannot be empty"}, 400
+
+            if len(new_username) < 3:
+                return {"success": False, "message": "Username must be at least 3 characters"}, 400
+
+            if len(new_username) > 20:
+                return {"success": False, "message": "Username cannot exceed 20 characters"}, 400
+
+            if not re.match(r'^[a-zA-Z0-9_]+$', new_username):
+                return {"success": False, "message": "Username can only contain letters, numbers, and underscores"}, 400
+    
             
             # FR7.1: Check if username is already taken
             existing_user = users_collection.find_one(
@@ -193,16 +215,26 @@ def update_profile():
         
         # FR6.2: Update email if provided
         if "email" in data:
-            new_email = data["email"].strip()
-            
+            new_email = data["email"].strip().lower()
+
             # FR7.2: Validate email format
             if not is_valid_email(new_email):
                 return {
                     "success": False,
                     "message": "Invalid email format"
                 }, 400
+
+            # Get current user to compare emails
+            current_user = users_collection.find_one({"_id": ObjectId(user_id)})
             
-            # Check if email is already taken
+            # Bug 1 fix: Only process if email is actually different
+            if new_email == current_user.get("email", "").lower():
+                return {
+                    "success": False,
+                    "message": "Email addresss you entered is the same as previous one! Please provide a different email address if you want to update."
+                }, 400
+
+            # Check if email is already taken by someone else
             existing_user = users_collection.find_one(
                 {"email": new_email, "_id": {"$ne": ObjectId(user_id)}}
             )
@@ -221,10 +253,10 @@ def update_profile():
             update_data["is_verified"] = False
             update_data["verification_code"] = verification_code
 
-            # Send verification email using the same function from auth
+            # Send verification email
             from routes.auth import send_verification_email
-            send_verification_email(new_email, verification_code)
-        
+            send_verification_email(new_email, verification_code)    
+                
         if not update_data:
             return {
                 "success": False,

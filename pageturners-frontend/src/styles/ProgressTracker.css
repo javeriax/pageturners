@@ -1,59 +1,61 @@
+/* ProgressTracker.css */
+/* Rhode aesthetic: blush progress fill, warm inputs */
 
+.progress-bar-background {
+    background: var(--linen-deep, #E2D8C4);
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 8px 0;
+    border: 1px solid var(--linen-border, #D4C9B0);
+}
 
 .progress-bar-fill {
     height: 100%;
-    background-color: #eedaeb; 
-    transition: width 0.3s ease;
+    background: var(--blush, #C9A99A);
+    border-radius: 999px;
+    transition: width 0.35s ease;
 }
 
 .page-input {
-    width: 50px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    width: 56px;
+    padding: 6px 10px;
+    border: 1px solid var(--linen-border, #D4C9B0);
+    border-radius: 3px;
+    background: var(--white, #FDFBF8);
+    color: var(--espresso, #2C1F14);
+    font-size: 13px;
+    font-family: var(--font-sans, 'Jost', 'Segoe UI', sans-serif);
     text-align: center;
+    outline: none;
+    transition: all 0.22s ease;
+}
+
+.page-input:focus {
+    border-color: var(--blush, #C9A99A);
+    box-shadow: 0 0 0 3px rgba(201, 169, 154, 0.12);
 }
 
 .save-progress-btn {
     margin-top: 10px;
-    padding: 8px 14px;
-    border-radius: 6px;
+    padding: 9px 22px;
+    border-radius: 999px;
     border: none;
-    background: var(--accent);
-    color: white;
-    font-weight: 600;
+    background: var(--espresso, #2C1F14);
+    color: var(--linen, #F5F0E8);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-sans, 'Jost', 'Segoe UI', sans-serif);
+    letter-spacing: 1px;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.22s ease;
 }
 
-.save-progress-btn:hover {
-    background: var(--accent-dark);
-}
+.save-progress-btn:hover { background: var(--mocha, #5C4033); }
 
-/* SUCCESS STATE */
 .save-progress-btn.saved {
-    background: #4caf50; /* green flash */
-    transform: scale(1.05);
+    background: #5A8C5E;
+    transform: scale(1.03);
 }
-
-/* progress bar */
-.progress-bar-background {
-     background: #e0cccc;
-    width: 100%;
-    height: 12px;
-    /* background: var(--bg-hover); */
-    border-radius: 6px;
-    overflow: hidden;
-    margin: 8px 0;
-    border: 1px solid var(--accent-border);
-}
-
-.progress-bar-fill {
-    height: 100%;
-    background: var(--accent);
-    transition: width 0.3s ease;
-}  
-
-
-
-
-

@@ -23,11 +23,19 @@ const BookDetails = () => {
     const [deleteConfirm, setDeleteConfirm] = useState(null); // holds review_id to delete
     const [deleteError, setDeleteError] = useState('');
     const [currentUserId, setCurrentUserId] = useState('');
+    const [expandedReviewId, setExpandedReviewId] = useState(null);
+        // Define a maximum length for review text before truncating
+    const maxLength = 200;
 
     // US.7: Add to Library state
     const [isInLibrary, setIsInLibrary] = useState(false);
     const [addingToLibrary, setAddingToLibrary] = useState(false);
     const [addLibraryError, setAddLibraryError] = useState('');
+    const truncateText = (text, maxLength = 300) => {
+        if (!text) return { text: '', isTruncated: false };
+        if (text.length <= maxLength) return { text, isTruncated: false };
+        return { text: text.substring(0, maxLength) + '...', isTruncated: true };
+    };
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -60,16 +68,8 @@ const BookDetails = () => {
         setReviewError('');
         setSubmitSuccess('');
 
-        // VALIDATION: Validate rating selected and review text)
-        if (!selectedStars) {
-            setReviewError('Please select a rating before submitting');
-            return;
-        }
+        
 
-        if (!reviewText.trim()) {
-            setReviewError('Please write a review before submitting');
-            return;
-        }
 
         setSubmitting(true);
 
@@ -129,6 +129,10 @@ const BookDetails = () => {
             setDeleteConfirm(null);
         }
     };
+
+
+
+
 
     // US.7: Handle adding book to library
     const handleAddToLibrary = async () => {
@@ -393,6 +397,9 @@ const BookDetails = () => {
                                     <span className="review-stars">
                                         {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                                     </span>
+
+
+
                                     {/* KLYRA-62: Delete button only on logged-in user's own review */}
                                     {review.user_id === currentUserId && (
                                         <button
@@ -415,7 +422,30 @@ const BookDetails = () => {
                                     })}
                                 </p>
                             )}
-                            <p className="review-text">{review.review_text}</p>
+                            {/* SHOW MORE CHANGES - TESTING RN */} 
+                            {/* <p className="review-text">{review.review_text}</p> */} 
+                            {(() => {
+    const { text, isTruncated } = truncateText(review.review_text, 200);
+    const reviewId = review.review_id || String(i);
+    const isExpanded = expandedReviewId === reviewId;
+    return (
+        <>
+            <p className="review-text">
+                {isExpanded ? review.review_text : text}
+            </p>
+            {isTruncated && (
+                <button
+                    className="show-more-btn"
+                    onClick={() => setExpandedReviewId(
+                        isExpanded ? null : reviewId
+                    )}
+                >
+                    {isExpanded ? 'Show less' : 'Show more'}
+                </button>
+            )}
+        </>
+    );
+})()}
                         </div>
                     ))
                 ) : (

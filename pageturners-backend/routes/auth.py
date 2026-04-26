@@ -322,6 +322,12 @@ def login():
             "message": "Invalid email or password"
         }, 401
 
+    if not user.get("is_verified", False):
+        return {
+            "success": False,
+            "message": "Please verify your email address before logging in"
+        }, 403
+
     token = create_access_token(identity=str(user['_id']))
 
     return {
