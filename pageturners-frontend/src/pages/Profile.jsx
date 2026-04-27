@@ -262,7 +262,7 @@ const Profile = () => {
             {/* Header */}
             <header className="dashboard-header">
                 <div className="header-logo">
-                    <span className="logo-icon">📚</span>
+                    <span className="logo-icon">⚔️</span>
                     <span className="logo-text">PageTurners</span>
                 </div>
                 <nav className="header-nav">
