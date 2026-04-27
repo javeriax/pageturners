@@ -108,8 +108,8 @@
 .book-info-col { flex: 1; padding-top: 0.25rem; }
 
 .book-breadcrumb {
-    font-size: 11px;
-    color: var(--latte, #8C7060);
+    font-size: 12px;
+    color: var(--mocha, #5C4033);
     margin-bottom: 0.75rem;
     letter-spacing: 0.3px;
     text-transform: uppercase;
@@ -128,15 +128,15 @@
 }
 
 .book-author-large {
-    font-size: 15px;
-    color: var(--latte, #8C7060);
+    font-size: 16px;
+    color: var(--mocha, #5C4033);
     margin-bottom: 1.25rem;
     font-style: italic;
     font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
 }
 
 .book-author-large strong {
-    color: var(--blush-dark, #B08878);
+    color: var(--mocha, #5C4033);
     font-weight: 500;
     font-style: normal;
 }
@@ -162,8 +162,8 @@
 }
 
 .rating-count {
-    font-size: 12px;
-    color: var(--latte, #8C7060);
+    font-size: 13px;
+    color: var(--mocha, #5C4033);
 }
 
 /* Genre pills */
@@ -175,7 +175,7 @@
     border: 1px solid var(--blush, #C9A99A);
     border-radius: 999px;
     color: var(--blush-dark, #B08878);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -192,21 +192,20 @@
 
 /* Synopsis */
 .synopsis-label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--oat, #B5A090);
+    color: var(--mocha, #5C4033);
     margin-bottom: 0.6rem;
 }
 
 .synopsis-text {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--mocha, #5C4033);
     line-height: 1.85;
     max-width: 680px;
     font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
-    font-size: 16px;
 }
 
 /* Meta strip */
@@ -221,19 +220,18 @@
 .meta-item { display: flex; flex-direction: column; gap: 3px; }
 
 .meta-label {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    color: var(--oat, #B5A090);
+    color: var(--mocha, #5C4033);
 }
 
 .meta-value {
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 400;
     color: var(--espresso, #2C1F14);
     font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
-    font-size: 17px;
 }
 
 /* Reviews section */
@@ -271,7 +269,7 @@
 
 .write-review-card h4 {
     font-family: var(--font-sans, 'Jost', sans-serif);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -293,7 +291,7 @@
 }
 
 .star-btn.active,
-.star-btn:hover { color: var(--blush, #C9A99A); transform: scale(1.15); }
+.star-btn:hover { color: var(--mocha, #5C4033); transform: scale(1.15); }
 
 .review-textarea {
     width: 100%;
@@ -302,7 +300,7 @@
     border: 1px solid var(--linen-border, #D4C9B0);
     border-radius: 3px;
     color: var(--espresso, #2C1F14);
-    font-size: 13px;
+    font-size: 14px;
     font-family: var(--font-sans, 'Jost', sans-serif);
     resize: vertical;
     min-height: 100px;
@@ -316,7 +314,7 @@
     box-shadow: 0 0 0 3px rgba(201, 169, 154, 0.12);
 }
 
-.review-textarea::placeholder { color: var(--oat, #B5A090); font-style: italic; }
+.review-textarea::placeholder { color: var(--mocha, #5C4033); font-style: italic; }
 
 .submit-review-btn {
     padding: 10px 28px;
@@ -354,24 +352,23 @@
     margin-bottom: 0.4rem;
 }
 
-.reviewer-name { font-weight: 500; font-size: 13px; color: var(--espresso, #2C1F14); }
+.reviewer-name { font-weight: 500; font-size: 14px; color: var(--espresso, #2C1F14); }
 .review-stars { color: var(--blush, #C9A99A); font-size: 0.9rem; letter-spacing: 1px; }
-.review-date { font-size: 11px; color: var(--oat, #B5A090); margin-bottom: 0.6rem; font-style: italic; }
+.review-date { font-size: 12px; color: var(--mocha, #5C4033); margin-bottom: 0.6rem; font-style: italic; }
 
 .review-text {
-    font-size: 14px;
+    font-size: 15px;
     color: var(--mocha, #5C4033);
     line-height: 1.75;
     font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
-    font-size: 15px;
 }
 
 /* No reviews */
 .no-reviews {
     text-align: center;
     padding: 3rem 2rem;
-    color: var(--oat, #B5A090);
-    font-size: 13px;
+    color: var(--mocha, #5C4033);
+    font-size: 14px;
     font-style: italic;
     font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
     border: 1px dashed var(--linen-border, #D4C9B0);

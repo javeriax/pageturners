@@ -50,5 +50,3 @@ echo -e "${BLUE}Starting Frontend (Vite)...${NC}"
 cd pageturners-frontend
 # This stays in the foreground so you can see Vite logs
 npm run dev
-
-!/bin/bash

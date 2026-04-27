@@ -138,7 +138,7 @@
 .password-section:last-child { border-bottom: none; }
 
 .profile-content h2 {
-    font-size: 0.8rem;
+    font-size: 14px;
     font-weight: 500;
     color: var(--mocha, #5C4033);
     margin-bottom: 1.75rem;
@@ -155,7 +155,7 @@
     margin-bottom: 6px;
     color: var(--mocha, #5C4033);
     font-weight: 500;
-    font-size: 11px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 1.2px;
 }
@@ -167,7 +167,7 @@
     border: 1px solid var(--linen-border, #D4C9B0);
     border-radius: 3px;
     font-family: var(--font-sans, 'Jost', sans-serif);
-    font-size: 13px;
+    font-size: 14px;
     color: var(--espresso, #2C1F14);
     background: var(--white, #FDFBF8);
     transition: all 0.22s ease;
@@ -299,7 +299,7 @@
     padding: 10px 16px;
     border-radius: 6px;
     margin-top: 0.75rem;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .success-message {
@@ -309,7 +309,7 @@
     padding: 10px 16px;
     border-radius: 6px;
     margin-top: 0.75rem;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .profile-loading,
@@ -346,8 +346,8 @@
     background: var(--linen, #F5F0E8);
     border: 1px solid var(--linen-border, #D4C9B0);
     border-radius: 3px;
-    color: var(--espresso, #2C1F14);
-    font-size: 13px;
+    color: var(--latte, #8C7060);
+    font-size: 14px;
     min-height: 40px;
     display: flex;
     align-items: center;

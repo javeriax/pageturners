@@ -91,7 +91,7 @@ def get_initial_books():
         
         return {
             "success": True,
-            "data": {
+            "data": { 
                 "row1": row1,
                 "row2": row2,
                 "row3": row3
@@ -200,12 +200,18 @@ def get_book_details(book_id):
             return {"success": False, "message": "Book not found"}, 404
             
         # Fetch reviews for this book from the reviews collection
+        # Dynamically fetch current username from users collection to reflect username changes
         reviews_cursor = db["reviews"].find({"book_id": ObjectId(book_id)})
         reviews_list = []
+        users_collection = db["users"]
         for review in reviews_cursor:
+            # Get current username from users collection
+            user = users_collection.find_one({"_id": ObjectId(review["user_id"])})
+            current_username = user.get("username", "Anonymous") if user else "Anonymous"
+            
             reviews_list.append({
                 "review_id": str(review["_id"]),
-                "username": review.get("username", "Anonymous"),
+                "username": current_username,  # Use current username, not stored one
                 "user_id": str(review["user_id"]),
                 "rating": review.get("rating"),
                 "review_text": review.get("review_text", ""),
