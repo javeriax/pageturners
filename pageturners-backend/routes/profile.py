@@ -267,8 +267,14 @@ def update_profile():
         users_collection.update_one(
             {"_id": ObjectId(user_id)},
             {"$set": update_data}
+
         )
-        
+        if "username" in update_data:
+            # ensure review has updated username
+            db["reviews"].update_many(
+                {"user_id": ObjectId(user_id)}, 
+                {"$set": {"username": update_data["username"]}}
+            )
         # After updating, fetch updated user
         updated_user = users_collection.find_one({"_id": ObjectId(user_id)})
 
@@ -407,7 +413,7 @@ def upload_profile_picture():
     {
         "image": "data:image/jpeg;base64,..."
     }
-    
+
     Returns:
         200: Picture uploaded successfully with new URL
         400: Invalid file type (only JPG/PNG/JPEG allowed)
