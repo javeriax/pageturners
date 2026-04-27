@@ -63,38 +63,7 @@ def store_image(base64_str, user_id):
         return f"/uploads/profile_pictures/{filename}"
     except Exception:
         return None
-# def store_image(base64_str, user_id):
-#     """FR8: Store uploaded image and return URL"""
-#     import os
-#     import hashlib
-    
-#     # Create uploads directory if it doesn't exist
-#     upload_dir = 'uploads/profile_pictures'
-#     os.makedirs(upload_dir, exist_ok=True)
-    
-#     # Remove data URI prefix
-#     if ',' in base64_str:
-#         base64_str = base64_str.split(',')[1]
-    
-#     # Decode base64
-#     try:
-#         image_data = base64.b64decode(base64_str)
-#     except Exception:
-#         return None
-    
-#     # Generate filename
-#     hash_name = hashlib.md5(f"{user_id}{datetime.utcnow().timestamp()}".encode()).hexdigest()
-#     file_ext = 'jpg' if 'jpeg' in base64_str or 'jpg' in base64_str else 'png'
-#     filename = f"{hash_name}.{file_ext}"
-    
-#     # Save file
-#     filepath = os.path.join(upload_dir, filename)
-#     try:
-#         with open(filepath, 'wb') as f:
-#             f.write(image_data)
-#         return f"/uploads/profile_pictures/{filename}"
-#     except Exception:
-#         return None
+
 
 
 # FR6: GET /api/profile - Fetch current user's profile data

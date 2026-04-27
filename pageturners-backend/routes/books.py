@@ -12,7 +12,7 @@ books_bp = Blueprint('books', __name__, url_prefix='/api/books')
 @books_bp.route('/initial', methods=['GET'])
 @jwt_required()
 def get_initial_books():
-    """Fetch initial 3 rows of books for dashboard with smart sorting"""
+    """Fetch initial 3 rows of books for dashboard with sorting"""
     try:
         db = current_app.db
         if db is None:

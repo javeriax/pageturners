@@ -54,7 +54,7 @@ export const searchBooks = async (search = '', genres = [], page = 1, limit = 12
 /**
  * fetch initial 3 rows of books for dashboard - single fast query
  * returns row1, row2, row3 each with 20 books
- * will be replaced with top rated books once reviews are implemented
+
  * @returns {object} { success, data: { row1: [...], row2: [...], row3: [...] } }
  */
 export const getInitialBooks = async () => {

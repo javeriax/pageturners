@@ -18,23 +18,25 @@ def hash_password(password):
     salt = bcrypt.gensalt(rounds=12)
     return bcrypt.hashpw(password.encode('utf-8'), salt)
 
-
 def send_verification_email(email, verification_code):
-    """Send verification email to user via local gmail SMTP server"""
+    """Send verification email to user via secure SMTP server"""
     try:
-        smtp_server = os.getenv("SMTP_SERVER", "localhost")
-        smtp_port = int(os.getenv("SMTP_PORT", "587"))
-        sender_email = os.getenv("SENDER_EMAIL", "noreply@pageturners.local")
+        # 1. LOAD CONFIGURATION: Securely fetch credentials from environment variables
+        smtp_server = os.getenv("SMTP_SERVER", "localhost") #local server
+        smtp_port = int(os.getenv("SMTP_PORT", "587")) #port
+        sender_email = os.getenv("SENDER_EMAIL", "noreply@pageturners.local") 
         sender_password = os.getenv("SENDER_PASSWORD", "")
         
+        # 2. EMAIL HEADERS: Set up the sender, recipient, and subject
         message = MIMEMultipart("alternative")
         message["Subject"] = "PageTurners - Verify Your Email"
         message["From"] = sender_email
         message["To"] = email
         
-        # Create verification link (user will click this link to verify)
+        # 3. CONTENT GENERATION: Create the dynamic verification link
         verification_link = f"http://localhost:5173/verify-email?email={email}&code={verification_code}"
         
+        # Fallback plain-text version for older email clients
         text = f"""
         Welcome to PageTurners!
         
@@ -46,6 +48,7 @@ def send_verification_email(email, verification_code):
         This code will expire in 24 hours.
         """
         
+        #  HTML version with basic styling
         html = f"""\
         <html>
           <body>
@@ -58,26 +61,22 @@ def send_verification_email(email, verification_code):
         </html>
         """
         
+        # 4. ATTACH CONTENT: Add both versions to the email payload
         part1 = MIMEText(text, "plain")
         part2 = MIMEText(html, "html")
         message.attach(part1)
         message.attach(part2)
 
-        # # Connect to Mailpit (no authentication needed). Use this and uncomment the Gmail one if you have mailpit
-        # # and want to test email sending. Change the port num to 1025 instead of 587 if using Mailpit.
-        # with smtplib.SMTP(smtp_server, smtp_port, timeout=5) as server:
-        #     server.sendmail(sender_email, email, message.as_string())
-        
-        # Connect to Gmail securely using TLS. Port 587 is for TLS. Make sure to set up an App Password
-        # in your Gmail account and use it as SENDER_PASSWORD in .env
+        # 5. SECURE TRANSMISSION: Connect, encrypt, authenticate, and send
         with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
-            server.ehlo() # Can be omitted, but good practice to say 'hello' to the server
-            server.starttls() # Upgrades the connection to a secure encrypted SSL/TLS connection
-            server.login(sender_email, sender_password) # Log in with App Password
-            server.sendmail(sender_email, email, message.as_string())
+            server.ehlo()                                # Identify ourselves to the server
+            server.starttls()                            # Upgrade to a secure encrypted TLS connection
+            server.login(sender_email, sender_password)  # Authenticate securely
+            server.sendmail(sender_email, email, message.as_string()) # Dispatch the email
         
         print(f"✓ Verification email sent to {email}")
         return True
+        
     except Exception as e:
         print(f"✗ Error sending email: {e}")
         return False
