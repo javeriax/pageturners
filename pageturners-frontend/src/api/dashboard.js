@@ -23,7 +23,7 @@ export const searchBooks = async (search = '', genres = [], page = 1, limit = 12
         params.append('page', page);
         params.append('limit', limit);
 
-        const response = await fetch(`${API_BASE}/books/?${params.toString()}`, {
+        const response = await fetch(`${API_BASE}/dashboard/?${params.toString()}`, {
             method: 'GET',
             headers: authHeader()
         });
@@ -45,7 +45,7 @@ export const searchBooks = async (search = '', genres = [], page = 1, limit = 12
 // each row contains 20 books fetched in a single efficient query
 export const getInitialBooks = async () => {
     try {
-        const response = await fetch(`${API_BASE}/books/initial`, {
+        const response = await fetch(`${API_BASE}/dashboard/initial`, {
             method: 'GET',
             headers: authHeader()
         });
@@ -66,7 +66,7 @@ export const getInitialBooks = async () => {
 // fetch all available genres for the genre filter dropdown
 export const getGenres = async () => {
     try {
-        const response = await fetch(`${API_BASE}/books/genres`, {
+        const response = await fetch(`${API_BASE}/dashboard/genres`, {
             method: 'GET',
             headers: authHeader()
         });

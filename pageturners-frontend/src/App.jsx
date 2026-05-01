@@ -6,7 +6,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard'; // import the dashboard component
 import BookDetails from './pages/BookDetails'; //the bookdetails compoenent
-import Library from './pages/Library'; // US.7: import library component
+import Library from './pages/Library'; 
 import Profile from './pages/Profile';
 /**
  * ProtectedRoute: Checks if a JWT token exists in local storage.
