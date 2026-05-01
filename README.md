@@ -63,7 +63,7 @@ pip install -r requirements.txt
 
 ### Environment Configuration
 
-Create a `.env` file in this folder and add:
+Create a `.env` file in  pageturners-backend folder and add:
 
 ```env
 # Database Access
