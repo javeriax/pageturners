@@ -1,16 +1,17 @@
-/**
- * ========================================
- * AUTHENTICATON TEST SUITE 
- * ========================================
- * Aligns with Test Strategy Document:
- * REGISTRATION:
- * - TC-AM-01: New User Registration
- * - TC-AM-10: Email Verification
- * - TC-API-01: API Response Validation
- * -TC-API-02: Protected API Access Without Token
- * LOGIN:
- * * TC-AM-03: Successful Login Handling
- * -TC AM 04: Invalid Login Handling
+// @vitest-environment jsdom
+/* 
+ * FRONTEND API (Unit Testing)
+ * DESCRIPTION: Verifies data formatting and API communication logic in src/api/auth.
+ * 
+ * COVERS TEST STRATEGY CASES:
+ * - TC-AM-01: New User Registration (Valid data format)
+ * - TC-AM-02: Duplicate Email Validation (Error handling)
+ * - TC-AM-03: Login Of Registered User (JWT handling)
+ * - TC-AM-04: Invalid Login Attempt (Error response)
+ * - TC-AM-05: Secure Logout (Session termination)
+ * - TC-AM-10: Email Verification After Registration
+ * - TC-API-01: Login API Response Validation
+ * - TC-API-02: Protected API Access Without Token
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -39,7 +40,7 @@ const localStorageMock = (() => {
 Object.defineProperty(window, 'localStorage', {
     value: localStorageMock,
 });
-//TC-AM-01, TC-AM-10, TC-API-01, TC-AM-03, TC-AM-04, TC-API-02
+
 describe('Authentication API Functions - Frontend Tests', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -48,7 +49,7 @@ describe('Authentication API Functions - Frontend Tests', () => {
 
     describe('registerUser', () => {
         /**
-         * Aligns with TC-AM-01 
+         * TC-AM-01 
          * Verifies that registration data is sent to the correct Flask port (5001).
          */
         it('should send registration request with correct format', async () => {
@@ -115,7 +116,7 @@ describe('Authentication API Functions - Frontend Tests', () => {
 
     describe('verifyEmail', () => {
         /**
-         * Aligns with TC-AM-10 
+         * TC-AM-10 
          * Corrects payload key to "verification_code" as required by the backend logic.
          */
         it('should send verify email request with correct format', async () => {
@@ -181,7 +182,7 @@ describe('Authentication API Functions - Frontend Tests', () => {
 });
 
 
-//LOGIN TESTS: TC-AM-03, TC-AM-04, TC-API-01
+//login tests TC-AM-03, TC-AM-04, TC-API-01
 
 describe('loginUser', () => {
     /**
@@ -195,14 +196,14 @@ describe('loginUser', () => {
             message: 'Login successful',
             token: 'header.payload.signature',
         };
- 
+
         global.fetch.mockResolvedValueOnce({
             ok: true,
             json: async () => mockResponse,
         });
- 
+
         await loginUser('test@example.com', 'Password123');
- 
+
         expect(global.fetch).toHaveBeenCalledWith(
             'http://localhost:5001/api/auth/login',
             {
@@ -215,7 +216,7 @@ describe('loginUser', () => {
             }
         );
     });
- 
+
     /**
      * TC-AM-04: Tests that loginUser() returns error when credentials are invalid.
      * Verifies that a 401 response is handled and error message returned correctly.
@@ -225,18 +226,18 @@ describe('loginUser', () => {
             success: false,
             message: 'Invalid email or password',
         };
- 
+
         global.fetch.mockResolvedValueOnce({
             ok: false,
             json: async () => mockResponse,
         });
- 
+
         const result = await loginUser('wrong@example.com', 'WrongPassword123');
- 
+
         expect(result.success).toBe(false);
         expect(result.message).toContain('Invalid email or password');
     });
- 
+
     /**
      * PASSING TEST - Frontend Only
      * TC-AM-03, TC-API-01: Tests that loginUser() returns success and JWT token
@@ -248,20 +249,20 @@ describe('loginUser', () => {
             message: 'Login successful',
             token: 'header.payload.signature',
         };
- 
+
         global.fetch.mockResolvedValueOnce({
             ok: true,
             json: async () => mockResponse,
         });
- 
+
         const result = await loginUser('test@example.com', 'Password123');
- 
+
         expect(result.success).toBe(true);
         expect(result.token).toBe('header.payload.signature');
         expect(result.message).toBe('Login successful');
     });
 });
- 
+
 //TC-API-02: Tests that accessing a protected API endpoint without a token returns a 401 Unauthorized response.
 describe('TC-API-02: Protected API Access Without Token', () => {
     it('should return 401 when token is missing', async () => {

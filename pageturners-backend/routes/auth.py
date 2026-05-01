@@ -373,11 +373,7 @@ def logout():
                 "message": f"Invalid token: {str(jwt_error)}"
             }, 422
 
-        # In a real app, you would:
-        # 1. Add token to a blacklist (Redis/Database)
-        # 2. Or invalidate the session in database
-        # For now, we just return success as frontend clears token
-
+  
         return {
             "success": True,
             "message": "Logged out successfully"

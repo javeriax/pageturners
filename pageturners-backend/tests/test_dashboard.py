@@ -24,8 +24,7 @@ def mock_db(monkeypatch):
     mock_client = mongomock.MongoClient()
     mock_database = mock_client["pageturners_test"]
     
-    # 2. Directly overwrite the db attribute on the app object.
-    # This ensures current_app.db in your routes points here.
+    # 2. Directly overwrite the db attribute on the app object..
     monkeypatch.setattr(app, "db", mock_database)
     
     # 3. Explicitly clear collections to prevent leakage
