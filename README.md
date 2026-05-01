@@ -1,154 +1,137 @@
+# PageTurners – Full-Stack Setup Guide
 
-Welcome to the Page Turners development repository. This project is a full-stack web application built with React (Vite), Flask, and MongoDB Atlas.
+This documentation explains how to set up, run, and understand the structure of the PageTurners web application built with React (Vite), Flask, and MongoDB Atlas.
 
-You can use these chat links which have context of the setup for help:
-https://gemini.google.com/share/3c31f581825f (GEMINI KNOWS THE FOLDER STRUCTURE)
-https://claude.ai/share/05aff5fb-8467-48d3-b957-31f002c6ee21 (SEND A SCREENSHOT TO CLAUDE OF THE FOLDER STRUCTURE FIRST)
+---
 
-**Prerequisites**
+## Tech Stack
 
-Before starting, ensure you have the following installed:
+* Python 3.12+ (Backend – Flask)
+* Node.js & npm (Frontend – React with Vite)
+* MongoDB Atlas (Database)
+* Git (Version Control)
 
-    Python 3.12+ (For the backend)
+---
 
-    Node.js & npm (For the frontend)
+## Prerequisites
 
-    Git (For version control)
+Make sure you have the following installed:
 
- **Initial Git Configuration**
+* Python 3.12+
+* Node.js & npm
+* Git
 
-To ensure your work is correctly attributed to you on GitHub, run these commands in your terminal:
-Bash
+---
 
-git config --global user.name "Your Full Name"
-git config --global user.email "your-github-email@example.com"
+## Local Setup
 
-    Note on Email: You must use the email address associated with your GitHub account. This ensures that when you push code, GitHub recognizes it was you and displays your profile picture next to the commit.
+### 1. Clone Repository
 
-**Project Structure**
-Backend (/pageturners-backend)
-
-    app.py: The main entry point that starts the Flask server and connects to MongoDB.
-
-    routes/: Contains the API logic for all features:
-
-    auth.py: Registration, Login, and Email Verification.
-
-books.py: Search and Discovery features.
-
-library.py: Personal library and progress tracking.
-
-reviews.py: User ratings and reviews.
-
-    .env: (DO NOT SHARE ON GIT) Contains our private MongoDB URI and JWT Secret Key.
-
-    venv/: The local virtual environment for Python dependencies.
-
-Frontend (/pageturners-frontend)
-
-    src/pages/: Full screens like Login.jsx, Register.jsx, and Dashboard.jsx.
-
-src/components/: Reusable parts like the Navbar and BookCard.
-
-    src/api/: Functions that fetch data from our Flask backend.
-
-    node_modules/: Libraries managed by npm.
-
-
-**Local Setup Steps**
-
-1. Clone the Project
-Bash
-
+```bash
 git clone https://github.com/YOUR_USERNAME/pageturners.git
 cd pageturners
+```
 
-2. Backend Setup
-Bash
+---
 
+## Backend Setup
+
+```bash
 cd pageturners-backend
 python -m venv venv
+```
 
-# Activation (Windows): venv\Scripts\activate
-# Activation (Mac/Linux): source venv/bin/activate
+### Activate Virtual Environment
 
-# Install all Python dependencies from requirements.txt
+* **Windows**
+
+```bash
+venv\Scripts\activate
+```
+
+* **Linux/macOS**
+
+```bash
+source venv/bin/activate
+```
+
+### Install Dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-Create a .env file here and paste the credentials shared by Javeria.
-(Note: requirements.txt contains all necessary packages - Flask, pymongo, bcrypt, etc.)
+### Environment Configuration
 
-3. Frontend Setup
-Bash
+Create a `.env` file in this folder and add:
 
-cd ../pageturners-frontend
-npm install 
+```env
+# Database Access
+MONGO_URI=mongodb+srv://jn09271:javeria123@cluster0.5aaiwob.mongodb.net/pageturners?appName=Cluster0
+JWT_SECRET_KEY=pageturners_secret_key_123
 
-Might need:
+# Email Configuration (For Reset Password/Welcome emails)
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SENDER_EMAIL= <your gmail>
+SENDER_PASSWORD= <16 letters app password>
+```
 
-npm install react-router-dom
+---
 
-If peer dependency error:
-npm install react-router-dom --legacy-peer-deps
+### Run Backend (All Environments)
 
-👨‍💻 Workflow & Branching
+```bash
+chmod +x dev.sh
+./dev.sh
+```
 
-Never commit directly to main. Always work on your own branch:
+---
 
-    Pull latest changes: git pull origin main
+## Frontend Setup
 
-    Create your branch: git checkout -b feature-yourname-task
-
-    Work and Commit: git add . then git commit -m "brief description of work"
-
-    Push your branch: git push origin feature-yourname-task
-
-**How to Pull Updates Without Errors**
-
-When pulling latest code from main, follow these steps to avoid conflicts:
-
-Bash
-
-# 1. Make sure you're on main branch
-git checkout main
-
-# 2. Fetch latest updates
-git fetch origin
-
-# 3. Pull updates (does fetch + merge)
-git pull origin main
-
-# 4. If you have local changes, stash them first
-git stash
-
-# 5. Then pull
-git pull origin main
-
-# 6. Restore your changes (optional)
-git stash pop
-
-# 7. Re-install dependencies (important!)
-# Backend
-cd pageturners-backend
-pip install -r requirements.txt
-
-# Frontend  
+```bash
 cd ../pageturners-frontend
 npm install
+```
 
-**Common Pull Errors & Solutions**
+If needed:
 
-| Error | Solution |
-|-------|----------|
-| "Your local changes would be overwritten" | Run `git stash` before pulling |
-| "Merge conflict" | Edit conflicted files, then `git add .` and `git commit -m "resolve conflicts"` |
-| "Module not found" | Run `npm install` (frontend) or `pip install -r requirements.txt` (backend) |
-| "JSON parsing error" | Delete `node_modules` and `package-lock.json`, then run `npm install` again |
+```bash
+npm install react-router-dom
+```
 
-How to Run the Application
+If you get peer dependency errors:
 
-Open two separate terminals:
+```bash
+npm install react-router-dom --legacy-peer-deps
+```
 
-    Terminal 1 (Backend): cd pageturners-backend -> Activate venv -> python app.py
+---
 
-    Terminal 2 (Frontend): cd pageturners-frontend -> npm run dev
+### Run Frontend
+
+```bash
+npm run dev
+```
+
+---
+
+## Running the Application
+
+Use two terminals:
+
+**Terminal 1 (Backend)**
+
+```bash
+cd pageturners-backend
+./dev.sh
+```
+
+**Terminal 2 (Frontend)**
+
+```bash
+cd pageturners-frontend
+npm run dev
+```
+
