@@ -1,6 +1,6 @@
 /**
  * ========================================
- * LOGIN COMPONENT TEST SUITE
+ * LOGIN COMPONENT TESTS FRONTEND
  * ========================================
  *
  * TEST STATUS: ALL 16 TESTS PASSING
@@ -33,17 +33,7 @@
  *  Edge Cases (2 tests)
  *   - should disable inputs during submission
  *   - should handle rapid form submission attempts
- *
- * COMMENTED TESTS (Require Backend Integration):
- * - Full login flow with real credentials
- * - Token persistence across page refresh
- *
- * Matches Test Strategy:
- * - TC-AM-03 Login Of Registered User
- * - TC-AM-04 Invalid Login Attempt
- * - TC-API-01 Login API Response Validation
- *
- * ========================================
+ 
  */
 
 import React from 'react';

@@ -1,13 +1,6 @@
-// UC3,10
-// Main dashboard page shown after login: displays 3 featured book sections + search/filter UI
-// 
-// Featured Sections:
-// 1. Popular Picks - books with highest review count & good avg ratings (from reviews aggregation)
-// 2. New Arrivals - newest books added to database (sorted by created_at desc)
-// 3. More to Explore - random selection for discovery (refreshes each load)
-//
-// Search/Filter: Real-time keyword search + multi-select genre filtering 
-// Each section scrolls horizontally showing 5 books visible at once (20 total per row)
+// UC3,10 - Dashboard: featured books and search/discovery interface
+// shows 3 featured rows + real-time search with multi-select genre filtering
+// featured rows: Popular Picks (most reviewed), New Arrivals (newest), More to Explore (random)
 
 import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -19,92 +12,51 @@ import BookCard from '../components/BookCard';
 export default function Dashboard() {
     const navigate = useNavigate();
 
-    // search input value typed by user
+    // search and filter state
     const [searchQuery, setSearchQuery] = useState('');
-
-    // text typed inside the genre search box inside the dropdown
     const [genreSearch, setGenreSearch] = useState('');
-
-    // list of genres selected in the filter dropdown
     const [selectedGenres, setSelectedGenres] = useState([]);
-
-    // all available genres fetched from backend
     const [availableGenres, setAvailableGenres] = useState([]);
-
-    // whether the genre filter dropdown is open
     const [filterOpen, setFilterOpen] = useState(false);
 
-    // featured books grouped by genre - only first 3 genres shown
+    // featured books and search results
     const [featuredBooks, setFeaturedBooks] = useState({});
-
-    // search results when user is actively searching or filtering
     const [searchResults, setSearchResults] = useState([]);
 
-    // pagination state for search results
+    // pagination info for search results
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
 
-    // whether user is in search/filter mode
+    // track if user is searching or just viewing featured
     const [isSearchMode, setIsSearchMode] = useState(false);
 
-    // loading states
+    // loading and error states
     const [loadingFeatured, setLoadingFeatured] = useState(true);
     const [loadingSearch, setLoadingSearch] = useState(false);
-
-    // error messages
     const [featuredError, setFeaturedError] = useState('');
     const [searchError, setSearchError] = useState('');
 
-    // ref for genre dropdown to detect outside clicks
+    // refs for keyboard navigation and dropdown positioning
     const filterRef = useRef(null);
-
-    // ref for genre search input to auto-focus when dropdown opens
     const genreSearchRef = useRef(null);
 
-    // books per page for search results
     const BOOKS_PER_PAGE = 12;
-
-    // only show first 3 genres in featured rows
     const FEATURED_ROW_COUNT = 3;
-
-    // books fetched per featured row (more than 5 so user can scroll)
     const BOOKS_PER_ROW = 20;
 
 
-    // redirect to login if no token found
+    // check if user is logged in - redirect to login if no token
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) navigate('/login');
     }, [navigate]);
 
-
-    // load initial books and genres on mount - run in parallel for speed
+    // load featured books and genres when component mounts
     useEffect(() => {
         loadInitialBooks();
         loadGenres();
     }, []);
-
-
-    // auto-filter when genres change - 300ms debounce to avoid spamming api
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            const hasSearch = searchQuery.trim().length > 0;
-            const hasGenres = selectedGenres.length > 0;
-
-            if (hasSearch || hasGenres) {
-                setIsSearchMode(true);
-                setCurrentPage(1);
-                loadSearchResults(searchQuery, selectedGenres, 1);
-            } else {
-                setIsSearchMode(false);
-                setSearchResults([]);
-            }
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [selectedGenres]);
-
 
     // auto-focus genre search input when dropdown opens
     useEffect(() => {
@@ -112,13 +64,12 @@ export default function Dashboard() {
             setTimeout(() => genreSearchRef.current?.focus(), 50);
         }
         if (!filterOpen) {
-            // clear genre search text when dropdown closes
+            // clear genre search text when dropdown closes so it starts fresh next time
             setGenreSearch('');
         }
     }, [filterOpen]);
 
-
-    // close dropdown when clicking outside
+    // close dropdown when user clicks outside of it (click outside detection)
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (filterRef.current && !filterRef.current.contains(e.target)) {
@@ -129,8 +80,7 @@ export default function Dashboard() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-
-    // fetch initial books for 3 rows - fast single query
+    // fetch and load the 3 featured rows of books (Popular, New Arrivals, Random)
     const loadInitialBooks = async () => {
         setLoadingFeatured(true);
         setFeaturedError('');
@@ -148,15 +98,13 @@ export default function Dashboard() {
         }
     };
 
-
-    // fetch all genres for the filter dropdown
+    // fetch all available genres for the filter dropdown
     const loadGenres = async () => {
         const result = await getGenres();
         if (result.success) setAvailableGenres(result.data);
     };
 
-
-    // fetch search/filter results from backend
+    // fetch search/filter results based on query, genres, and page number
     const loadSearchResults = useCallback(async (query, genres, page) => {
         setLoadingSearch(true);
         setSearchError('');
@@ -179,14 +127,13 @@ export default function Dashboard() {
     }, []);
 
 
-    // handle typing in the search bar - real time search with debounce
+    // update search query when user types - triggers debounced search after 400ms
     const handleSearchChange = (e) => {
         const value = e.target.value;
         setSearchQuery(value);
     };
 
-
-    // trigger search when user presses Enter in the search bar
+    // handle Enter key in search input to trigger search immediately
     const handleSearchKeyDown = (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -200,28 +147,31 @@ export default function Dashboard() {
         }
     };
 
-
-    // debounce real-time search as user types
+    // Unified real-time search and filter logic
+    // debounces as user types or selects genres, and instantly exits if all are cleared
     useEffect(() => {
-        const timer = setTimeout(() => {
-            const hasSearch = searchQuery.trim().length > 0;
-            const hasGenres = selectedGenres.length > 0;
+        const hasSearch = searchQuery.trim().length > 0;
+        const hasGenres = selectedGenres.length > 0;
 
-            if (hasSearch || hasGenres) {
-                setIsSearchMode(true);
-                setCurrentPage(1);
-                loadSearchResults(searchQuery, selectedGenres, 1);
-            } else if (!hasSearch && !hasGenres) {
-                setIsSearchMode(false);
-                setSearchResults([]);
-            }
+        // INSTANT ESCAPE: If everything is cleared, exit search mode instantly (no delay!)
+        if (!hasSearch && !hasGenres) {
+            setIsSearchMode(false);
+            setSearchResults([]);
+            setCurrentPage(1);
+            return;
+        }
+
+        // DEBOUNCE: If they are typing or selecting, wait 400ms then fetch results
+        const timer = setTimeout(() => {
+            setIsSearchMode(true);
+            setCurrentPage(1);
+            loadSearchResults(searchQuery, selectedGenres, 1);
         }, 400);
 
         return () => clearTimeout(timer);
-    }, [searchQuery]);
+    }, [searchQuery, selectedGenres, loadSearchResults]);
 
-
-    // clear all search and filters - return to featured view
+    // reset search and filters, return user to featured books view
     const handleClearSearch = () => {
         setSearchQuery('');
         setSelectedGenres([]);
@@ -231,8 +181,7 @@ export default function Dashboard() {
         setCurrentPage(1);
     };
 
-
-    // toggle a genre in the multi-select list
+    // toggle a genre on or off in the multi-select filter
     const toggleGenre = (genre) => {
         setSelectedGenres(prev =>
             prev.includes(genre)
@@ -241,8 +190,7 @@ export default function Dashboard() {
         );
     };
 
-
-    // pagination handlers
+    // navigate to next page of search results
     const handleNextPage = () => {
         if (currentPage < totalPages) {
             const newPage = currentPage + 1;
@@ -252,6 +200,7 @@ export default function Dashboard() {
         }
     };
 
+    // navigate to previous page of search results
     const handlePrevPage = () => {
         if (currentPage > 1) {
             const newPage = currentPage - 1;
@@ -263,7 +212,7 @@ export default function Dashboard() {
 
 
 
-    // genres filtered and sorted: Selected > Exact Match > Starts With > Alpha
+    // filter genres based on what user typed and sort by: selected > exact match > starts with > alphabetical
     const filteredGenres = availableGenres
         .filter(genre => {
             const searchWords = genreSearch.toLowerCase().trim().split(/\s+/);
@@ -274,7 +223,7 @@ export default function Dashboard() {
             const aSelected = selectedGenres.includes(a);
             const bSelected = selectedGenres.includes(b);
 
-            // 1. TOP PRIORITY: Selected/Checked genres always go to the very top
+            // priority 1: selected genres go to the top
             if (aSelected && !bSelected) return -1;
             if (!aSelected && bSelected) return 1;
 
@@ -282,28 +231,21 @@ export default function Dashboard() {
             const aLow = a.toLowerCase();
             const bLow = b.toLowerCase();
 
-            // 2. SECOND PRIORITY: Exact match (if user is typing)
+            // priority 2: exact match with search text
             if (aLow === query) return -1;
             if (bLow === query) return 1;
 
-            // 3. THIRD PRIORITY: Starts with query
+            // priority 3: genres that start with search text
             if (aLow.startsWith(query) && !bLow.startsWith(query)) return -1;
             if (!aLow.startsWith(query) && bLow.startsWith(query)) return 1;
 
-            // 4. FALLBACK: Alphabetical order
+            // priority 4: alphabetical order for the rest
             return aLow.localeCompare(bLow);
         });
 
-    // build the context message shown above search results
+    // build the heading text that appears above search results
     const getResultsHeading = () => {
-        if (searchQuery.trim() && selectedGenres.length > 0) {
-            return (
-                <>
-                    Search results for <span className="results-highlight">"{searchQuery}"</span>
-                    {' '}in <span className="results-highlight">{selectedGenres.join(', ')}</span>
-                </>
-            );
-        }
+        // If they typed a specific keyword, display it
         if (searchQuery.trim()) {
             return (
                 <>
@@ -311,24 +253,17 @@ export default function Dashboard() {
                 </>
             );
         }
-        if (selectedGenres.length > 0) {
-            return (
-                <>
-                    Showing books in <span className="results-highlight">{selectedGenres.join(', ')}</span>
-                </>
-            );
-        }
+        // If they are only filtering by genre, keep it clean and minimal
         return 'Search Results';
     };
 
 
-    // horizontal scrollable row component for featured book sections
-    // shows 5 books visible with scroll buttons, 20 total books per row
-    // all cards have uniform height (322px) so titles align in same visual row
+    // reusable component for each horizontal scrolling row of books (Popular Picks, New Arrivals, etc)
+    // each row shows 5 books visible at once with scroll buttons, has 20 total books
     const GenreRow = ({ genre, books }) => {
         const rowRef = useRef(null);
 
-        // scroll by exactly 5 book widths (180px each + 16px gap = ~980px)
+        // scroll left or right by exactly 5 book widths (each book is 180px + 16px gap)
         const scroll = (direction) => {
             if (rowRef.current) {
                 const scrollAmount = direction === 'left' ? -980 : 980;
@@ -364,8 +299,7 @@ export default function Dashboard() {
         );
     };
 
-
-    // only show first 3 genres for the featured section
+    // only display the first 3 rows from featured books
     const featuredEntries = Object.entries(featuredBooks).slice(0, FEATURED_ROW_COUNT);
 
 
@@ -404,17 +338,6 @@ export default function Dashboard() {
                         onKeyDown={handleSearchKeyDown}
                         aria-label="Search books by title or author"
                     />
-
-                    {/* clear button - only shown when something is active */}
-                    {(isSearchMode || searchQuery || selectedGenres.length > 0) && (
-                        <button
-                            type="button"
-                            className="clear-search-btn"
-                            onClick={handleClearSearch}
-                        >
-                            Clear
-                        </button>
-                    )}
 
                     {/* genre filter dropdown with built-in search - right side */}
                     <div className="filter-dropdown-wrapper" ref={filterRef}>
@@ -508,7 +431,7 @@ export default function Dashboard() {
             {/* main content area - white background */}
             <main className="dashboard-main">
 
-                {isSearchMode ? (
+                {isSearchMode && (searchQuery.trim().length > 0 || selectedGenres.length > 0) ? (
                     /* search / filter results view */
                     <div className="search-results-section">
 

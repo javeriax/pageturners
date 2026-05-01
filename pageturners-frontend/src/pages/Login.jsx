@@ -138,23 +138,7 @@ export default function Login() {
             <div className="auth-card">
                 {/* Logo section */}
                 <div className="logo-section">
-                    <div className="logo-icon">
-                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            {/* Book icon SVG */}
-                            <defs>
-                                <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
-                                    <stop offset="100%" style={{ stopColor: '#5a4a42', stopOpacity: 1 }} />
-                                </linearGradient>
-                            </defs>
-                            {/* Open book pages */}
-                            <path d="M 30 25 L 30 75 Q 50 70 50 50 Q 50 70 70 75 L 70 25 Q 50 30 50 50 Q 50 30 30 25" fill="url(#bookGradient)" />
-                            {/* Book spine */}
-                            <rect x="48" y="20" width="4" height="60" fill="#4a3a32" opacity="0.3" />
-                            {/* Pages highlight */}
-                            <path d="M 32 28 Q 50 32 50 50 Q 50 32 68 28" stroke="rgba(255,255,255,0.3)" strokeWidth="1" fill="none" />
-                        </svg>
-                    </div>
+                    <div className="logo-icon">⚔️</div>
                     <h1>PageTurners</h1>
                 </div>
 

@@ -14,7 +14,7 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 
 def hash_password(password):
-    """Hash password using bcrypt"""
+    """Hash password using bcrypt"""    
     salt = bcrypt.gensalt(rounds=12)
     return bcrypt.hashpw(password.encode('utf-8'), salt)
 
@@ -71,7 +71,7 @@ def send_verification_email(email, verification_code):
         with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
             server.ehlo()                                # Identify ourselves to the server
             server.starttls()                            # Upgrade to a secure encrypted TLS connection
-            server.login(sender_email, sender_password)  # Authenticate securely
+            server.login(sender_email, sender_password)  # Authenticate securely (SENDER)
             server.sendmail(sender_email, email, message.as_string()) # Dispatch the email
         
         print(f"✓ Verification email sent to {email}")

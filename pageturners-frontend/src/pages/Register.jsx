@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Using modern navigate
+import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../api/auth';
 import '../styles/Auth.css';
 
 export default function Register() {
     const navigate = useNavigate();
+
+    // form state
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -17,6 +19,7 @@ export default function Register() {
     const [validationErrors, setValidationErrors] = useState({});
     const [showRequirements, setShowRequirements] = useState(false);
 
+    // check if password meets all requirements
     const checkPasswordRequirements = (pwd) => {
         return {
             hasMinLength: pwd.length >= 8,
@@ -26,12 +29,13 @@ export default function Register() {
         };
     };
 
+    // validate all form fields and return error object
     const validateForm = () => {
         const errors = {};
         const rawUsername = formData.username;
         const trimmedUsername = rawUsername.trim();
 
-        // 1. Username Validation (Exact strings for tests)
+        // username must be 3-20 chars with letters, numbers, underscore, hyphen
         if (!trimmedUsername) {
             errors.username = 'Username is required';
         } else if (trimmedUsername.length < 3) {
@@ -42,14 +46,14 @@ export default function Register() {
             errors.username = 'Username can only contain letters, numbers, underscores, and hyphens';
         }
 
-        // 2. Email Validation
+        // email must be valid format
         if (!formData.email.trim()) {
             errors.email = 'Email is required';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             errors.email = 'Please enter a valid email address';
         }
 
-        // 3. Password Validation
+        // password must be at least 8 chars with uppercase, lowercase, and number
         if (!formData.password) {
             errors.password = 'Password is required';
         } else if (formData.password.length < 8) {
@@ -62,7 +66,7 @@ export default function Register() {
             errors.password = 'Password must contain at least one number';
         }
 
-        // 4. Confirm Password
+        // confirm password must match
         if (!formData.confirmPassword) {
             errors.confirmPassword = 'Please confirm your password';
         } else if (formData.password !== formData.confirmPassword) {
@@ -72,20 +76,24 @@ export default function Register() {
         return errors;
     };
 
+    // update form field value and clear its error message
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
 
+        // clear error for this field as user types
         if (validationErrors[name]) {
             setValidationErrors((prev) => ({ ...prev, [name]: '' }));
         }
     };
 
+    // submit form - validate then send to backend
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
 
+        // check for validation errors
         const errors = validateForm();
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);
@@ -100,8 +108,10 @@ export default function Register() {
             if (result.success) {
                 setSuccess(result.message);
                 const userEmail = formData.email;
+                // reset form fields
                 setFormData({ username: '', email: '', password: '', confirmPassword: '' });
 
+                // redirect to email verification after 2 seconds
                 setTimeout(() => {
                     navigate('/verify-email', { state: { email: userEmail } });
                 }, 2000);
@@ -119,19 +129,7 @@ export default function Register() {
         <div className="auth-container">
             <div className="auth-card">
                 <div className="logo-section">
-                    <div className="logo-icon">
-                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
-                                    <stop offset="100%" style={{ stopColor: '#5a4a42', stopOpacity: 1 }} />
-                                </linearGradient>
-                            </defs>
-                            <path d="M 30 25 L 30 75 Q 50 70 50 50 Q 50 70 70 75 L 70 25 Q 50 30 50 50 Q 50 30 30 25" fill="url(#bookGradient)" />
-                            <rect x="48" y="20" width="4" height="60" fill="#4a3a32" opacity="0.3" />
-                            <path d="M 32 28 Q 50 32 50 50 Q 50 32 68 28" stroke="rgba(255,255,255,0.3)" strokeWidth="1" fill="none" />
-                        </svg>
-                    </div>
+                    <div className="logo-icon">⚔️</div>
                     <h1>PageTurners</h1>
                 </div>
 
@@ -139,7 +137,7 @@ export default function Register() {
                 {error && <div className="message error-message"><p>{error}</p></div>}
 
                 <form onSubmit={handleSubmit} className="auth-form" noValidate>
-                    {/* 1. Email Field */}
+                    {/* email field */}
                     <div className="form-group">
                         <label htmlFor="email">Email</label>
                         <input
@@ -154,7 +152,7 @@ export default function Register() {
                         {validationErrors.email && <span className="error-text">{validationErrors.email}</span>}
                     </div>
 
-                    {/* 2. Password Field */}
+                    {/* password field with collapsible requirements checklist */}
                     <div className="form-group">
                         <div className="password-label-section">
                             <label htmlFor="password">Password</label>
@@ -178,6 +176,7 @@ export default function Register() {
                         />
                         {validationErrors.password && <span className="error-text">{validationErrors.password}</span>}
 
+                        {/* show checklist when user clicks Requirements button */}
                         {showRequirements && (
                             <div className="requirements-checklist">
                                 <div className={`requirement-item ${checkPasswordRequirements(formData.password).hasMinLength ? 'met' : ''}`}>
@@ -196,7 +195,7 @@ export default function Register() {
                         )}
                     </div>
 
-                    {/* 3. Confirm Password Field */}
+                    {/* confirm password field */}
                     <div className="form-group">
                         <label htmlFor="confirmPassword">Confirm Password</label>
                         <input
@@ -211,7 +210,7 @@ export default function Register() {
                         {validationErrors.confirmPassword && <span className="error-text">{validationErrors.confirmPassword}</span>}
                     </div>
 
-                    {/* 4. Username Field */}
+                    {/* username field */}
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
                         <input

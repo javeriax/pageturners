@@ -52,7 +52,8 @@
     padding: 0;
 }
 
-/* ─── Page Base ───────────────────────────────────────────── */
+
+/*  Page Base */
 .dashboard {
     min-height: 100vh;
     background-color: var(--linen);
@@ -60,7 +61,7 @@
     color: var(--text-primary);
 }
 
-/* ─── Header — cream/parchment like Rhode nav ─────────────── */
+/*Header */
 .dashboard-header {
     display: flex;
     align-items: center;
@@ -204,7 +205,7 @@
     background: var(--espresso);
     border: none;
     border-radius: 999px;
-    color: var(--linen);
+    color: var(--parchment);
     font-size: 12px;
     font-weight: 500;
     font-family: var(--font-sans);
@@ -216,8 +217,12 @@
 }
 
 .filter-btn:hover,
-.filter-btn.filter-active {
-    background: var(--mocha);
+.filter-btn.filter-active,
+.filter-btn:hover .filter-arrow,
+.filter-btn.filter-active .filter-arrow {
+    background: var(--mocha) !important;
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
 }
 
 .filter-count {

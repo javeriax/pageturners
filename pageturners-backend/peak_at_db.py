@@ -9,7 +9,7 @@ uri = os.getenv("MONGO_URI")
 client = MongoClient(uri)
 db = client["pageturners"]
 
-# Ask user what they want to display
+#ask user what they want to display
 print("What would you like to see in database_dump.txt?")
 print("1. Users")
 print("2. Books")
