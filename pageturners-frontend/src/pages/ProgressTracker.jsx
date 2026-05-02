@@ -1,99 +1,100 @@
 import React, { useState } from 'react';
-import { updateProgress } from '../api/library'; 
+import { updateProgress } from '../api/library';
 
 const ReadingProgress = ({ book, onUpdate }) => {
-    //Internal state for the input field
+    // initialize state: ensure current_page is a string for the input field
     const [currentPage, setCurrentPage] = useState(
-    book.current_page !== undefined && book.current_page !== null
-        ? String(book.current_page)
-        : ''
-);
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+        book.current_page != null ? String(book.current_page) : ''
+    );
+    const [status, setStatus] = useState({ error: '', loading: false });
 
-    // Calculate progress percentage for the bar
     const totalPages = book.total_pages || 0;
-    const CurrentPage = Number(currentPage) || 0;
-    const progressPercent =
-        totalPages > 0 ? (CurrentPage / totalPages) * 100 : 0;
-
-    // Handle saving progress to backend (upon pressing "Save" button)
+    const progressPercent = totalPages > 0 
+        ? (Number(currentPage) / totalPages) * 100 
+        : 0;
+    // handle save progress:
     const handleSave = async () => {
-        if (loading) return; // Prevent multiple clicks
+        if (status.loading) return;
+
         const pageNum = Number(currentPage);
-       if (currentPage === '' || isNaN(pageNum) || pageNum < 0 || pageNum > totalPages) {
-            setError("Enter a valid page number");
+        
+        // validation logic
+        if (currentPage === '' || isNaN(pageNum) || pageNum < 0 || pageNum > totalPages) {
+            setStatus({ error: "Enter a valid page number", loading: false });
             return;
         }
 
-    //  UI FEEDBACK 
-        setError("Saved progress!"); // Show success message
-        setTimeout(() => setError(''), 2000);
-
-        setLoading(true); // Show loading state on button
+        setStatus({ error: '', loading: true });
 
         try {
             const result = await updateProgress(book._id, pageNum);
 
             if (result.success) {
-                onUpdate(book._id, pageNum); 
+                onUpdate(book._id, pageNum);
+                setStatus({ error: "Saved progress!", loading: false });
+                setTimeout(() => setStatus(prev => ({ ...prev, error: '' })), 2000);
             } else {
-                setError(result.message);
+                setStatus({ error: result.message, loading: false });
             }
         } catch (err) {
-            setError("Failed to connect");
-        } finally {
-            setLoading(false);
+            setStatus({ error: "Failed to connect", loading: false });
         }
-};
+    };
+
+    // handle input change: allow only numbers and empty string for clearing the input
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        
+        // allow empty string so user can clear the input
+        if (value === '') {
+            setCurrentPage('');
+            return;
+        }
+
+        const num = Number(value);
+        // only update if it is a valid number
+        if (!isNaN(num)) {
+            setCurrentPage(value);
+        }
+    };
+
     return (
         <div className="reading-progress-container">
             <p className="progress-label">Reading progress:</p>
             
-            {/* Progress Bar */}
             <div className="progress-bar-background">
                 <div 
                     className="progress-bar-fill" 
-                    style={{ width: `${Math.min(progressPercent, 100)}%` }}
-                ></div>
+                    style={{ width: `${Math.min(Math.max(progressPercent, 0), 100)}%` }}
+                />
             </div>
 
             <div className="progress-controls">
                 <span>Page </span>
-                {/*Input Field */}
                 <input 
                     type="number" 
                     className="page-input"
                     value={currentPage}
                     min="0"
                     max={totalPages}
-                    onChange={(e) => {
-                        const value = e.target.value; // Allow empty input to clear the field
-                        if (value === '') { // Clear input if user deletes the value
-                            setCurrentPage(''); // Set to empty string to allow user to have a blank input before entering a new number
-                            return;
-                        }
-                        // Validate that the input is a number and within the valid range
-                        const num = Number(value);
-                        // Only update state if it's a valid number and within the range
-                        if (!Number.isNaN(num)) {
-                            setCurrentPage(num);
-                        }
-}}
-                                />
-                {/* Show total pages next to input */}
+                    onChange={handleInputChange}
+                />
                 <span className="total-pages"> / {totalPages}</span>
-                {/* Save Button*/}
+                
                 <button 
                     className="save-progress-btn" 
                     onClick={handleSave}
-                    disabled={loading}
+                    disabled={status.loading}
                 >
-                    {loading ? '...' : 'Save Progress'}
+                    {status.loading ? '...' : 'Save Progress'}
                 </button>
             </div>
 
-            {error && <p className="progress-error">{error}</p>}
+            {status.error && (
+                <p className={`progress-status ${status.error.includes('Saved') ? 'success' : 'error'}`}>
+                    {status.error}
+                </p>
+            )}
         </div>
     );
 };

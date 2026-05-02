@@ -6,69 +6,68 @@ from datetime import datetime
 library_bp = Blueprint('library', __name__, url_prefix='/api/library')
 
 
-# ADD BOOK TO LIBRARY ENDPOINT
+# helpers
+# to avoid repeating code for db connection, id conversion, and fetching library entries
+def get_db():
+    db = current_app.db
+    if db is None:
+        return None, ({"success": False, "message": "Database connection failed"}, 500)
+    return db, None
+
+# helper to convert string id to ObjectId with error handling
+def to_object_id(id_str, field_name="ID"):
+    try:
+        return ObjectId(id_str), None
+    except:
+        return None, ({"success": False, "message": f"Invalid {field_name} format"}, 400)
+
+# helper to fetch library entry for a user and book
+def get_library_entry(db, user_id, book_obj_id):
+    return db["user_library"].find_one({
+        "user_id": ObjectId(user_id),
+        "book_id": book_obj_id
+    })
+
+
+# ADD BOOK
 @library_bp.route('/add', methods=['POST'])
 @jwt_required()
 def add_to_library():
-    """
-    Add a book to user's personal library
-    
-    Expected JSON body:
-    {
-        "book_id": "60d5ec49c1234567890abcde"
-    }
-    """
     try:
         user_id = get_jwt_identity()
-        db = current_app.db
-        
-        if db is None:
-            return {"success": False, "message": "Database connection failed"}, 500
-        
-        # Get request data
+        db, err = get_db()
+        if err:
+            return err
+
         data = request.get_json()
         book_id = data.get('book_id', '').strip()
-        
-        # Validate book_id
+
         if not book_id:
             return {"success": False, "message": "Book ID is required"}, 400
-        
-        try:
-            book_obj_id = ObjectId(book_id)
-        except:
-            return {"success": False, "message": "Invalid book ID format"}, 400
-        
-        # Check if book exists
-        books_collection = db["books"]
-        book = books_collection.find_one({"_id": book_obj_id})
-        
+
+        book_obj_id, err = to_object_id(book_id, "book ID")
+        if err:
+            return err
+
+        # check book exists
+        book = db["books"].find_one({"_id": book_obj_id})
         if not book:
             return {"success": False, "message": "Book not found"}, 404
-        
-        # Get user's library collection
-        library_collection = db["user_library"]
-        
-        # Check if book is already in user's library
-        existing = library_collection.find_one({
-            "user_id": ObjectId(user_id),
-            "book_id": book_obj_id
-        })
-        
-        if existing:
+
+        # check duplicate
+        if get_library_entry(db, user_id, book_obj_id):
             return {"success": False, "message": "Book is already in your library"}, 409
-        
-        # Create library entry
-        library_entry = {
+
+        entry = {
             "user_id": ObjectId(user_id),
             "book_id": book_obj_id,
             "added_at": datetime.utcnow(),
-            "status": "want to read",  # Status: want to read, currently reading, completed, dropped
-            "current_page" :  0  # track reading progress in the future
+            "status": "want to read",
+            "current_page": 0
         }
-        
-        # Insert into library
-        result = library_collection.insert_one(library_entry)
-        
+
+        result = db["user_library"].insert_one(entry)
+
         return {
             "success": True,
             "message": "Book added to library successfully",
@@ -76,75 +75,60 @@ def add_to_library():
                 "library_id": str(result.inserted_id),
                 "book_id": book_id,
                 "status": "want to read",
-                "current_page": 0  # track reading progress in the future
+                "current_page": 0
             }
         }, 201
-    
+
     except Exception as e:
-        print(f"Error adding book to library: {e}")
+        print(f"add error: {e}")
         return {"success": False, "message": str(e)}, 500
 
 
-# GET USER'S LIBRARY ENDPOINT
+# GET LIBRARY
 @library_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_user_library():
-    """
-    Fetch all books in user's library with full book details
-    
-    Query parameters:
-    - status: filter by status (want to read, currently reading, completed, dropped) - optional
-    - page: page number for pagination (default: 1)
-    - limit: books per page (default: 12)
-    """
     try:
         user_id = get_jwt_identity()
-        db = current_app.db
-        
-        if db is None:
-            return {"success": False, "message": "Database connection failed"}, 500
-        
-        # Get query parameters
+        db, err = get_db()
+        if err:
+            return err
+
         status = request.args.get('status', '').strip()
-        page = int(request.args.get('page', 1))
+        page = max(int(request.args.get('page', 1)), 1)
         limit = int(request.args.get('limit', 12))
-        
-        if page < 1:
-            page = 1
-        
+
+        filter_query = {"user_id": ObjectId(user_id)}
+        if status in ["want to read", "currently reading", "completed", "dropped"]:
+            filter_query["status"] = status
+
         library_collection = db["user_library"]
         books_collection = db["books"]
-        
-        # Build filter query
-        filter_query = {"user_id": ObjectId(user_id)}
-        if status and status in ["want to read", "currently reading", "completed", "dropped"]:
-            filter_query["status"] = status
-        
-        # Get total count
+
         total = library_collection.count_documents(filter_query)
-        
-        # Get paginated library entries
-        skip = (page - 1) * limit
-        library_entries = list(
+
+        entries = list(
             library_collection
             .find(filter_query)
             .sort("added_at", -1)
-            .skip(skip)
+            .skip((page - 1) * limit)
             .limit(limit)
         )
-        
-        # Fetch book details for each library entry
+
         books_data = []
-        for entry in library_entries:
+        for entry in entries:
             book = books_collection.find_one({"_id": entry["book_id"]})
-            if book:
-                book['_id'] = str(book['_id'])
-                book['library_id'] = str(entry['_id'])
-                book['status'] = entry['status']
-                book['current_page'] = entry.get('current_page', 0) # Include reading progress
-                book['added_at'] = entry['added_at'].isoformat()
-                books_data.append(book)
-        
+            if not book:
+                continue
+
+            book['_id'] = str(book['_id'])
+            book['library_id'] = str(entry['_id'])
+            book['status'] = entry['status']
+            book['current_page'] = entry.get('current_page', 0)
+            book['added_at'] = entry['added_at'].isoformat()
+
+            books_data.append(book)
+
         return {
             "success": True,
             "data": books_data,
@@ -155,168 +139,118 @@ def get_user_library():
                 "pages": (total + limit - 1) // limit
             }
         }, 200
-    
+
     except Exception as e:
-        print(f"Error fetching user library: {e}")
+        print(f"fetch error: {e}")
         return {"success": False, "message": str(e)}, 500
 
 
-# REMOVE BOOK FROM LIBRARY ENDPOINT
+# REMOVE BOOK
 @library_bp.route('/<book_id>', methods=['DELETE'])
 @jwt_required()
 def remove_from_library(book_id):
-    """
-    Remove a book from user's library
-    """
     try:
         user_id = get_jwt_identity()
-        db = current_app.db
-        
-        if db is None:
-            return {"success": False, "message": "Database connection failed"}, 500
-        
-        try:
-            book_obj_id = ObjectId(book_id)
-        except:
-            return {"success": False, "message": "Invalid book ID format"}, 400
-        
-        library_collection = db["user_library"]
-        
-        # Find the library entry
-        library_entry = library_collection.find_one({
-            "user_id": ObjectId(user_id),
-            "book_id": book_obj_id
-        })
-        
-        if not library_entry:
+        db, err = get_db()
+        if err:
+            return err
+
+        book_obj_id, err = to_object_id(book_id, "book ID")
+        if err:
+            return err
+
+        entry = get_library_entry(db, user_id, book_obj_id)
+        if not entry:
             return {"success": False, "message": "Book not found in your library"}, 404
-        
-        # Check ownership (verify it's user's entry)
-        if str(library_entry["user_id"]) != str(user_id):
-            return {"success": False, "message": "You can only delete your own library entries"}, 403
-        
-        # Delete the library entry
-        library_collection.delete_one({
+
+        db["user_library"].delete_one({
             "user_id": ObjectId(user_id),
             "book_id": book_obj_id
         })
-        
+
         return {
             "success": True,
             "message": "Book removed from library successfully"
         }, 200
-    
+
     except Exception as e:
-        print(f"Error removing book from library: {e}")
+        print(f"remove error: {e}")
         return {"success": False, "message": str(e)}, 500
 
 
-# UPDATE LIBRARY ENTRY STATUS ENDPOINT (Bonus: for marking books as reading/completed)
+# UPDATE STATUS
 @library_bp.route('/<book_id>/status', methods=['PATCH'])
 @jwt_required()
 def update_library_status(book_id):
-    """
-    Update reading status of a book in user's library
-    
-    Expected JSON body:
-    {
-        "status": "want to read" or "currently reading" or "completed" or "dropped"
-    }
-    """
     try:
         user_id = get_jwt_identity()
-        db = current_app.db
-        
-        if db is None:
-            return {"success": False, "message": "Database connection failed"}, 500
-        
-        try:
-            book_obj_id = ObjectId(book_id)
-        except:
-            return {"success": False, "message": "Invalid book ID format"}, 400
-        
-        # Get request data
+        db, err = get_db()
+        if err:
+            return err
+
+        book_obj_id, err = to_object_id(book_id, "book ID")
+        if err:
+            return err
+
         data = request.get_json()
         status = data.get('status', '').strip()
-        
-        # Validate status
-        if status not in ["want to read", "currently reading", "completed", "dropped"]:
-            return {"success": False, "message": "Invalid status. Must be: want to read, currently reading, completed, or dropped"}, 400
-        
-        library_collection = db["user_library"]
-        
-        # Find the library entry
-        library_entry = library_collection.find_one({
-            "user_id": ObjectId(user_id),
-            "book_id": book_obj_id
-        })
-        
-        if not library_entry:
+
+        valid_status = ["want to read", "currently reading", "completed", "dropped"]
+        if status not in valid_status:
+            return {"success": False, "message": "Invalid status"}, 400
+
+        entry = get_library_entry(db, user_id, book_obj_id)
+        if not entry:
             return {"success": False, "message": "Book not found in your library"}, 404
-        
-        # Update status
-        library_collection.update_one(
-            {
-                "user_id": ObjectId(user_id),
-                "book_id": book_obj_id
-            },
-            {
-                "$set": {
-                    "status": status,
-                    "updated_at": datetime.utcnow()
-                }
-            }
+
+        db["user_library"].update_one(
+            {"_id": entry["_id"]},
+            {"$set": {"status": status, "updated_at": datetime.utcnow()}}
         )
-        
+
         return {
             "success": True,
             "message": "Book status updated successfully",
-            "data": {
-                "book_id": book_id,
-                "status": status
-            }
+            "data": {"book_id": book_id, "status": status}
         }, 200
-    
+
     except Exception as e:
-        print(f"Error updating library status: {e}")
+        print(f"status error: {e}")
         return {"success": False, "message": str(e)}, 500
 
 
-#UPDATE READING PROGRESS ENDPOINT 
+# UPDATE PROGRESS
 @library_bp.route('/<book_id>/progress', methods=['PATCH'])
 @jwt_required()
 def update_progress(book_id):
-    """
-    Update current page number for a book in user's library
-    """
     try:
         user_id = get_jwt_identity()
-        db = current_app.db
-        
-        # 1. Validate book_id format
-        try:
-            book_obj_id = ObjectId(book_id)
-        except:
-            return {"success": False, "message": "Invalid book ID format"}, 400
+        db, err = get_db()
+        if err:
+            return err
 
-        # 2. Get and validate input data 
+        book_obj_id, err = to_object_id(book_id, "book ID")
+        if err:
+            return err
+
         data = request.get_json()
         new_page = data.get('current_page')
 
-        #3. Fetch book details to verify total pages
         book = db["books"].find_one({"_id": book_obj_id})
         if not book:
             return {"success": False, "message": "Book not found"}, 404
+
         total_pages = book.get('total_pages', 0)
 
-        #4. Validate new_page is a non-negative integer and does not exceed total pages
-        if new_page is None or not isinstance(new_page, int) or new_page < 0 or new_page > total_pages:
-            print("RETURNING 400 - INVALID PAGE", flush=True)
+        if (
+            new_page is None or
+            not isinstance(new_page, int) or
+            new_page < 0 or
+            new_page > total_pages
+        ):
             return {"success": False, "message": "Valid page number is required"}, 400
 
-        # 5. Update the progress in MongoDB and ensure the book is in user's library
-        library_collection = db["user_library"]
-        result = library_collection.update_one(
+        result = db["user_library"].update_one(
             {
                 "user_id": ObjectId(user_id),
                 "book_id": book_obj_id
@@ -342,5 +276,5 @@ def update_progress(book_id):
         }, 200
 
     except Exception as e:
-        print(f"Error updating progress: {e}")
+        print(f"progress error: {e}")
         return {"success": False, "message": str(e)}, 500

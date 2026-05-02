@@ -1,246 +1,139 @@
-// API_BASE_URL: Backend server address. All API calls go to http://localhost:5001/api
+// base url for backend
 const API_BASE_URL = 'http://localhost:5001/api';
 
-// registerUser: Sends registration data to backend
-// Takes username, email and password from form
-// Backend should create new user in database and send verification email
-// Returns {success: true/false, message: "error or success message"}
+// helper function to make API requests:
+const apiRequest = async (endpoint, method = 'POST', body = null, token = null) => {
+    try {
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        // if token is provided, add Authorization header:
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        // make API request:
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : null,
+        });
+        //parse response and handle errors:
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Request failed');
+        }
+
+        return { success: true, data };
+
+    } catch (error) {
+        return {
+            success: false,
+            message: error.message || 'An error occurred',
+        };
+    }
+};
+
+
+// register new user:
 export const registerUser = async (username, email, password) => {
-    try {
-        // Send POST request to backend /api/auth/register endpoint
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                email,
-                password,
-            }),
-        });
+    const result = await apiRequest('/auth/register', 'POST', {
+        username,
+        email,
+        password,
+    });
 
-        // Parse response from backend
-        const data = await response.json();
+    if (!result.success) return result;
 
-        // Check if request was successful (status 200-299 range)
-        if (!response.ok) {
-            throw new Error(data.message || 'Registration failed');
-        }
-
-        // Return success message to frontend
-        return {
-            success: true,
-            message: data.message || 'Registration successful',
-            data,
-        };
-    } catch (error) {
-        // Return error message if something went wrong
-        return {
-            success: false,
-            message: error.message || 'An error occurred during registration',
-        };
-    }
+    return {
+        success: true,
+        message: result.data.message || 'Registration successful',
+        data: result.data,
+    };
 };
 
-// verifyEmail: Verifies email using code sent to user's email
-// Called after user clicks verification link in email
-// Not yet used in frontend UI
+
+// verify email:
 export const verifyEmail = async (email, code) => {
-    try {
-        // Send POST request to backend /api/auth/verify-email endpoint
-        const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email,
-                verification_code: code,
-            }),
-        });
+    const result = await apiRequest('/auth/verify-email', 'POST', {
+        email,
+        verification_code: code,
+    });
 
-        const data = await response.json();
+    if (!result.success) return result;
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Email verification failed');
-        }
-
-        return {
-            success: true,
-            message: data.message || 'Email verified successfully',
-        };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'An error occurred during email verification',
-        };
-    }
+    return {
+        success: true,
+        message: result.data.message || 'Email verified successfully',
+    };
 };
 
-// loginUser: Sends login credentials to backend
-// Takes email and password from form
-// Backend verifies credentials and returns JWT token
-// Returns {success: true/false, message: "error or success message", token: "JWT token"}
+
+// login:
 export const loginUser = async (email, password) => {
-    try {
-        // Send POST request to backend /api/auth/login endpoint
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email,
-                password,
-            }),
-        });
+    const result = await apiRequest('/auth/login', 'POST', {
+        email,
+        password,
+    });
 
-        // Parse response from backend
-        const data = await response.json();
+    if (!result.success) return result;
 
-        // Check if request was successful (status 200-299 range)
-        if (!response.ok) {
-            throw new Error(data.message || 'Login failed');
-        }
-
-        // Return success message and token to frontend
-        return {
-            success: true,
-            message: data.message || 'Login successful',
-            token: data.token,
-            data,
-        };
-    } catch (error) {
-        // Return error message if something went wrong
-        return {
-            success: false,
-            message: error.message || 'An error occurred during login',
-        };
-    }
+    return {
+        success: true,
+        message: result.data.message || 'Login successful',
+        token: result.data.token,
+        data: result.data,
+    };
 };
 
-// logoutUser: Sends logout request to backend
-// Invalidates user's JWT token on backend
-// Clears localStorage token on frontend
-// Returns {success: true/false, message: "success or error message"}
+
+// logout:
 export const logoutUser = async () => {
-    try {
-        // Get token from localStorage
-        const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
-        // Send POST request to backend /api/auth/logout endpoint
-        const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-        });
+    const result = await apiRequest('/auth/logout', 'POST', null, token);
 
-        // Parse response from backend
-        const data = await response.json();
+    // always clear token
+    localStorage.removeItem('token');
 
-        // Clear token from localStorage regardless of response
-        localStorage.removeItem('token');
+    if (!result.success) return result;
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Logout failed');
-        }
-
-        return {
-            success: true,
-            message: data.message || 'Logged out successfully',
-        };
-    } catch (error) {
-        // Clear token even if logout request fails
-        localStorage.removeItem('token');
-
-        return {
-            success: false,
-            message: error.message || 'An error occurred during logout',
-        };
-    }
+    return {
+        success: true,
+        message: result.data.message || 'Logged out successfully',
+    };
 };
 
-// forgotPassword: Sends password reset request to backend
-// Takes email from form
-// Backend sends password reset email with reset code
-// Returns {success: true/false, message: "error or success message"}
+
+// forgot password:
 export const forgotPassword = async (email) => {
-    try {
-        // Send POST request to backend /api/auth/forgot-password endpoint
-        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email,
-            }),
-        });
+    const result = await apiRequest('/auth/forgot-password', 'POST', {
+        email,
+    });
 
-        // Parse response from backend
-        const data = await response.json();
+    if (!result.success) return result;
 
-        // Check if request was successful (status 200-299 range)
-        if (!response.ok) {
-            throw new Error(data.message || 'Password reset request failed');
-        }
-
-        // Return success message to frontend
-        return {
-            success: true,
-            message: data.message || 'Password reset link sent to your email',
-            data,
-        };
-    } catch (error) {
-        // Return error message if something went wrong
-        return {
-            success: false,
-            message: error.message || 'An error occurred during password reset request',
-        };
-    }
+    return {
+        success: true,
+        message: result.data.message || 'Password reset link sent',
+        data: result.data,
+    };
 };
 
-// resetPassword: Resets user password with reset code
-// Takes email, reset code, and new password
-// Backend validates code and updates password
-// Returns {success: true/false, message: "error or success message"}
+
+// reset password:
 export const resetPassword = async (email, resetCode, newPassword) => {
-    try {
-        // Send POST request to backend /api/auth/reset-password endpoint
-        const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email,
-                reset_code: resetCode,
-                new_password: newPassword,
-            }),
-        });
+    const result = await apiRequest('/auth/reset-password', 'POST', {
+        email,
+        reset_code: resetCode,
+        new_password: newPassword,
+    });
 
-        // Parse response from backend
-        const data = await response.json();
+    if (!result.success) return result;
 
-        // Check if request was successful (status 200-299 range)
-        if (!response.ok) {
-            throw new Error(data.message || 'Password reset failed');
-        }
-
-        // Return success message to frontend
-        return {
-            success: true,
-            message: data.message || 'Password reset successful',
-            data,
-        };
-    } catch (error) {
-        // Return error message if something went wrong
-        return {
-            success: false,
-            message: error.message || 'An error occurred during password reset',
-        };
-    }
+    return {
+        success: true,
+        message: result.data.message || 'Password reset successful',
+        data: result.data,
+    };
 };

@@ -1,356 +1,190 @@
 // api/books.js
 // all api calls related to book details, reviews, and library management
-// used by BookDetails.jsx and Library.jsx
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
-// helper to get jwt token from localstorage
+// helper to get token
 const getToken = () => localStorage.getItem('token');
 
-// helper to build authorization header
-const authHeader = () => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${getToken()}`
-});
+// helper to build headers
+const buildHeaders = (withJson = false) => {
+    const headers = {};
+    const token = getToken();
+
+    if (withJson) headers['Content-Type'] = 'application/json';
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    return headers;
+};
+
+// reusable request handler
+const apiRequest = async (url, options = {}) => {
+    try {
+        const response = await fetch(url, options);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Request failed');
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.message || 'An error occurred'
+        };
+    }
+};
 
 
-/**
- * fetch full details for a single book including reviews - UC4
- * @param {string} bookId - mongodb objectid of the book
- * @returns {object} { success, data: { book fields + reviews array } }
- */
+//fetch full book details with reviews
 export const getBookDetails = async (bookId) => {
-    try {
-        const response = await fetch(`${API_BASE}/books/${bookId}`, {
-            method: 'GET',
-            headers: authHeader()
-        });
+    const result = await apiRequest(`${API_BASE}/books/${bookId}`, {
+        method: 'GET',
+        headers: buildHeaders()
+    });
 
-        const data = await response.json();
-        return data;
-
-    } catch (error) {
-        console.error('get book details error:', error);
-        return {
-            success: false,
-            message: 'Failed to connect to server',
-            data: null
-        };
-    }
+    return result.success
+        ? result.data
+        : { success: false, message: result.message, data: null };
 };
 
-// submitReview: Send user's rating and review to backend
+
+//submit review
 export const submitReview = async (bookId, rating, reviewText) => {
-    try {
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            return {
-                success: false,
-                message: 'You must be logged in to submit a review'
-            };
-        }
-
-        const response = await fetch(`${API_BASE}/books/${bookId}/reviews`, {  // Use API_BASE here
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // Send JWT token for authentication
-            },
-            body: JSON.stringify({
-                rating,
-                review_text: reviewText
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to submit review');
-        }
-
-        return {
-            success: true,
-            message: data.message,
-            data: data.data
-        };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'An error occurred while submitting your review'
-        };
+    if (!getToken()) {
+        return { success: false, message: 'You must be logged in to submit a review' };
     }
+
+    const result = await apiRequest(`${API_BASE}/books/${bookId}/reviews`, {
+        method: 'POST',
+        headers: buildHeaders(true),
+        body: JSON.stringify({
+            rating,
+            review_text: reviewText
+        })
+    });
+
+    return result.success
+        ? { success: true, message: result.data.message, data: result.data.data }
+        : { success: false, message: result.message };
 };
 
-// getBookReviews: Fetch all reviews for a book
+
+/*get reviews*/
 export const getBookReviews = async (bookId) => {
-    try {
-        const token = localStorage.getItem('token');
+    const result = await apiRequest(`${API_BASE}/books/${bookId}/reviews`, {
+        method: 'GET',
+        headers: buildHeaders()
+    });
 
-        const response = await fetch(`${API_BASE}/books/${bookId}/reviews`, {  // Use API_BASE here
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to fetch reviews');
-        }
-
-        return {
-            success: true,
-            data: data.data
-        };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'An error occurred while fetching reviews'
-        };
-    }
+    return result.success
+        ? { success: true, data: result.data.data }
+        : { success: false, message: result.message };
 };
 
 
-// deleteReview: Delete the logged-in user's own review
-// KLYRA-65, KLYRA-66, KLYRA-67
+/*delete review*/
 export const deleteReview = async (bookId, reviewId) => {
-    try {
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            return {
-                success: false,
-                message: 'You must be logged in to delete a review'
-            };
-        }
-
-        const response = await fetch(`${API_BASE}/books/${bookId}/reviews/${reviewId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to delete review');
-        }
-
-        return {
-            success: true,
-            message: data.message,
-            data: data.data
-        };
-
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'An error occurred while deleting your review'
-        };
+    if (!getToken()) {
+        return { success: false, message: 'You must be logged in to delete a review' };
     }
+
+    const result = await apiRequest(`${API_BASE}/books/${bookId}/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers: buildHeaders()
+    });
+
+    return result.success
+        ? { success: true, message: result.data.message, data: result.data.data }
+        : { success: false, message: result.message };
 };
 
 
-/**
- * Add book to user's library - US.7
- * @param {string} bookId - mongodb objectid of the book
- * @returns {object} { success, message, data }
- */
+/*add to library*/
 export const addToLibrary = async (bookId) => {
-    try {
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            return {
-                success: false,
-                message: 'You must be logged in to add books to your library'
-            };
-        }
-
-        const response = await fetch(`${API_BASE}/library/add`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                book_id: bookId
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to add book to library');
-        }
-
-        return {
-            success: true,
-            message: data.message,
-            data: data.data
-        };
-
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'An error occurred while adding book to library'
-        };
+    if (!getToken()) {
+        return { success: false, message: 'You must be logged in to add books to your library' };
     }
+
+    const result = await apiRequest(`${API_BASE}/library/add`, {
+        method: 'POST',
+        headers: buildHeaders(true),
+        body: JSON.stringify({ book_id: bookId })
+    });
+
+    return result.success
+        ? { success: true, message: result.data.message, data: result.data.data }
+        : { success: false, message: result.message };
 };
 
 
-/**
- * Get user's library with pagination - US.7
- * @param {number} page - page number for pagination (default: 1)
- * @param {number} limit - books per page (default: 12)
- * @param {string} status - filter by status: to-read, reading, completed (optional)
- * @returns {object} { success, data: books[], pagination }
- */
+/*get library*/
 export const getLibrary = async (page = 1, limit = 12, status = '') => {
-    try {
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            return {
-                success: false,
-                message: 'You must be logged in to view your library',
-                data: []
-            };
-        }
-
-        const params = new URLSearchParams();
-        params.append('page', page);
-        params.append('limit', limit);
-        if (status && ['want to read', 'currently reading', 'completed', 'dropped'].includes(status)) {
-            params.append('status', status);
-        }
-
-        const response = await fetch(`${API_BASE}/library/?${params.toString()}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to fetch library');
-        }
-
-        return {
-            success: true,
-            data: data.data,
-            pagination: data.pagination
-        };
-
-    } catch (error) {
+    if (!getToken()) {
         return {
             success: false,
-            message: error.message || 'An error occurred while fetching your library',
+            message: 'You must be logged in to view your library',
             data: []
         };
     }
+
+    const params = new URLSearchParams();
+    params.append('page', page);
+    params.append('limit', limit);
+
+    if (status && ['want to read', 'currently reading', 'completed', 'dropped'].includes(status)) {
+        params.append('status', status);
+    }
+
+    const result = await apiRequest(`${API_BASE}/library/?${params.toString()}`, {
+        method: 'GET',
+        headers: buildHeaders()
+    });
+
+    return result.success
+        ? { success: true, data: result.data.data, pagination: result.data.pagination }
+        : { success: false, message: result.message, data: [] };
 };
 
 
-/**
- * Remove book from user's library - US.7
- * @param {string} bookId - mongodb objectid of the book
- * @returns {object} { success, message }
- */
+/*remove from library*/
 export const removeFromLibrary = async (bookId) => {
-    try {
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            return {
-                success: false,
-                message: 'You must be logged in to remove books from your library'
-            };
-        }
-
-        const response = await fetch(`${API_BASE}/library/${bookId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to remove book from library');
-        }
-
-        return {
-            success: true,
-            message: data.message
-        };
-
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'An error occurred while removing book from library'
-        };
+    if (!getToken()) {
+        return { success: false, message: 'You must be logged in to remove books from your library' };
     }
+
+    const result = await apiRequest(`${API_BASE}/library/${bookId}`, {
+        method: 'DELETE',
+        headers: buildHeaders()
+    });
+
+    return result.success
+        ? { success: true, message: result.data.message }
+        : { success: false, message: result.message };
 };
 
 
-/**
- * Update reading status of a book in library - US.7
- * @param {string} bookId - mongodb objectid of the book
- * @param {string} status - reading status: to-read, reading, or completed
- * @returns {object} { success, message, data }
- */
+/*update library status*/
 export const updateLibraryStatus = async (bookId, status) => {
-    try {
-        const token = localStorage.getItem('token');
+    if (!getToken()) {
+        return { success: false, message: 'You must be logged in to update book status' };
+    }
 
-        if (!token) {
-            return {
-                success: false,
-                message: 'You must be logged in to update book status'
-            };
-        }
-
-        if (!['want to read', 'currently reading', 'completed', 'dropped'].includes(status)) {
-            return {
-                success: false,
-                message: 'Invalid status. Must be: want to read, currently reading, completed, or dropped'
-            };
-        }
-
-        const response = await fetch(`${API_BASE}/library/${bookId}/status`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                status: status
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to update book status');
-        }
-
-        return {
-            success: true,
-            message: data.message,
-            data: data.data
-        };
-
-    } catch (error) {
+    if (!['want to read', 'currently reading', 'completed', 'dropped'].includes(status)) {
         return {
             success: false,
-            message: error.message || 'An error occurred while updating book status'
+            message: 'Invalid status. Must be: want to read, currently reading, completed, or dropped'
         };
     }
+
+    const result = await apiRequest(`${API_BASE}/library/${bookId}/status`, {
+        method: 'PATCH',
+        headers: buildHeaders(true),
+        body: JSON.stringify({ status })
+    });
+
+    return result.success
+        ? { success: true, message: result.data.message, data: result.data.data }
+        : { success: false, message: result.message };
 };
