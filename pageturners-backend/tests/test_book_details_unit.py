@@ -2,7 +2,7 @@
 from bson import ObjectId
 # book details tests
 # tc-bd-06: view book detail completeness
-def test_book_details_success(client, mock_db, auth_header):
+def test_book_details_success(client, mock_db, auth_headers):
     book_id = ObjectId()
 
     mock_db.books.insert_one({
@@ -14,7 +14,7 @@ def test_book_details_success(client, mock_db, auth_header):
         "total_pages": 400
     })
 
-    response = client.get(f"/api/books/{book_id}", headers=auth_header)
+    response = client.get(f"/api/books/{book_id}", headers=auth_headers)
     data = response.get_json()
 
     assert response.status_code == 200
@@ -23,10 +23,10 @@ def test_book_details_success(client, mock_db, auth_header):
 
 
 # tc-bd-06: book not found case
-def test_book_details_not_found(client, mock_db, auth_header):
+def test_book_details_not_found(client, mock_db, auth_headers):
     fake_id = ObjectId()
 
-    response = client.get(f"/api/books/{fake_id}", headers=auth_header)
+    response = client.get(f"/api/books/{fake_id}", headers=auth_headers)
     data = response.get_json()
 
     assert response.status_code == 404

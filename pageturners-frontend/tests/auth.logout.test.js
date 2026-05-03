@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-//logout tests TC-AM-05, TC-AM-06, TC-AM-07, TC-AM-08
+//logout tests TC-AM-05,TC-AM-07, TC-AM-08
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 global.fetch = vi.fn();

@@ -2,6 +2,12 @@
 // Frontend tests for profile management - FR6, FR7, FR8
 // Tests profile updates, password changes, picture uploads
 
+/*Test Plan:
+ * - TC-AM-07: Update Profile Information (bio, username, email)
+ * - TC-AM-08: Username Uniqueness on Update
+ * - TC-AM-09: Profile Picture Validation
+ * - TC-AM-11: Change Password from Profile
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -29,9 +35,9 @@ const renderWithRouter = (component) => {
     );
 };
 
-//  FR6: GET PROFILE TESTS 
-
-describe('FR6: Fetch and Display Profile', () => {
+//profie tests:
+//fetch and display profile:
+describe('Fetch and Display Profile', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -80,9 +86,11 @@ describe('FR6: Fetch and Display Profile', () => {
     });
 });
 
-//  FR6.2: UPDATE PROFILE TESTS 
+//UPDATE PROFILE TESTS 
+ //TC-AM-07: Update Profile Information
+ //TC-AM-08: Username Uniqueness on Update
 
-describe('FR6.2: Update Profile Fields', () => {
+describe('Update Profile Fields', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -151,6 +159,7 @@ describe('FR6.2: Update Profile Fields', () => {
         });
     });
 
+    //TC-AM-08: username uniqueness:
     it('Should show error when username is already taken', async () => {
         const user = userEvent.setup();
 
@@ -222,9 +231,9 @@ describe('FR6.2: Update Profile Fields', () => {
     });
 });
 
-//  FR7.3: PASSWORD CHANGE TESTS 
-
-describe('FR7.3: Change Password', () => {
+// PASSWORD CHANGE TESTS 
+//TC-AM-11: Change password from profile:
+describe('Change Password', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -329,7 +338,8 @@ describe('FR7.3: Change Password', () => {
 
 });
 
-//  FR8: PICTURE UPLOAD TESTS 
+//PICTURE UPLOAD TESTS 
+//TC-AM-09: Profile picture upload and validation
 
 describe('FR8: Profile Picture Upload', () => {
 

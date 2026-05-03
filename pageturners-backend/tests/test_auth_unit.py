@@ -161,7 +161,7 @@ def test_logout_success(client):
     assert response.get_json()["success"] is True
 
 
-# tc-am-06: logout without token
+#logout without token
 def test_logout_no_token(client):
     response = client.post('/api/auth/logout')
 

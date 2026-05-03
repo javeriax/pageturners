@@ -34,9 +34,8 @@ const renderWithRouter = (component) => {
     );
 };
 
-// ─── UNIT TESTS: Form Validation ───
-
-describe('KLYRA-69: Review Form Validation', () => {
+//UNIT TESTS: Form Validation:
+describe(' Review Form Validation', () => {
     
     beforeEach(() => {
         vi.clearAllMocks();
@@ -56,8 +55,8 @@ describe('KLYRA-69: Review Form Validation', () => {
             message: 'Please select a rating before submitting'
         });
     });
-    
-    it('should show error when rating not selected', async () => {
+    //TC-RR-03:Rating requirement validation
+        it('should show error when rating not selected', async () => {
         const user = userEvent.setup();
         
         renderWithRouter(<BookDetails />);
@@ -65,7 +64,7 @@ describe('KLYRA-69: Review Form Validation', () => {
         await waitFor(() => {
             expect(screen.getByPlaceholderText('What did you think of this book?')).toBeInTheDocument();
         });
-        
+        //TC-RR-02: Submit written text review
         const textarea = screen.getByPlaceholderText('What did you think of this book?');
         await user.type(textarea, 'Great book!');
         
@@ -105,9 +104,9 @@ describe('KLYRA-69: Review Form Validation', () => {
     });
 });
 
-// ─── UNIT TESTS: Star Rating Component ───
+//UNIT TESTS: Star Rating Component
 
-describe('KLYRA-68: Star Rating Component', () => {
+describe('Star Rating Component', () => {
     
     beforeEach(() => {
         vi.clearAllMocks();
@@ -122,7 +121,7 @@ describe('KLYRA-68: Star Rating Component', () => {
             }
         });
     });
-    
+    //TC-RR-01: Submit star rating
     it('should allow selecting 1-5 stars', async () => {
         const user = userEvent.setup();
         
@@ -179,9 +178,8 @@ describe('KLYRA-68: Star Rating Component', () => {
     });
 });
 
-// ─── UNIT TESTS: Average Rating Display ───
-
-describe('KLYRA-70: Average Rating Display', () => {
+//UNIT TESTS: Average Rating Display
+describe('Average Rating Display', () => {
     
     beforeEach(() => {
         vi.clearAllMocks();
@@ -207,7 +205,7 @@ describe('KLYRA-70: Average Rating Display', () => {
             expect(screen.getByText(/10 reviews?/i)).toBeInTheDocument();
         });
     });
-
+    //TC-RR-04: Average Rating Recalculation upon new review
     it('should update average rating after new review', async () => {
         const user = userEvent.setup();
         
@@ -270,9 +268,9 @@ describe('KLYRA-70: Average Rating Display', () => {
     });
 });
 
-// ─── INTEGRATION TESTS: Review Submission ───
+//INTEGRATION TESTS: Review Submission
 
-describe('KLYRA-118: Submit Review Integration', () => {
+describe('Submit Review Integration', () => {
     
     beforeEach(() => {
         vi.clearAllMocks();
@@ -436,9 +434,9 @@ describe('KLYRA-118: Submit Review Integration', () => {
     });
 });
 
-// ─── INTEGRATION TESTS: View Reviews ───
+//INTEGRATION TESTS: View Reviews 
 
-describe('KLYRA-71: View Reviews', () => {
+describe('View Reviews', () => {
     
     beforeEach(() => {
         vi.clearAllMocks();
@@ -511,9 +509,9 @@ describe('KLYRA-71: View Reviews', () => {
     });
 });
 
-// ─── INTEGRATION TESTS: Delete Review ───
+// Delete Review 
 
-describe('KLYRA-72: Delete Review', () => {
+describe('Delete Review', () => {
     
     beforeEach(() => {
         vi.clearAllMocks();
@@ -531,7 +529,7 @@ describe('KLYRA-72: Delete Review', () => {
             }
         });
     });
-
+    //TC-RR-05: Delete personal review + TC-RR-07: Delete only visible for personal reviews
     it('should show delete button for own reviews', async () => {
         renderWithRouter(<BookDetails />);
         
@@ -595,6 +593,7 @@ describe('KLYRA-72: Delete Review', () => {
             });
         }
     });
+    //TC-RR-06:Average Rating Recalculation (Delete)
 
     it('should update average rating after deletion', async () => {
         const user = userEvent.setup();
@@ -621,10 +620,9 @@ describe('KLYRA-72: Delete Review', () => {
         }
     });
 });
+// SYSTEM TESTS: End-to-End 
 
-// ─── SYSTEM TESTS: End-to-End ───
-
-describe('KLYRA-120: System Testing', () => {
+describe('System Testing', () => {
     
     beforeEach(() => {
         vi.clearAllMocks();
