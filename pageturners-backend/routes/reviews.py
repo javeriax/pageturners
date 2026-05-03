@@ -35,15 +35,24 @@ def recalculate_avg(reviews_collection, books_collection, book_id):
 
 def validate_review(data):
     """Returns (rating, review_text, error) tuple"""
-    review_text = data.get('review_text', '').strip()
-    if not review_text:
-        return None, None, err("Review text is required and cannot be empty")
 
+    # rating is REQUIRED
     rating = data.get('rating')
-    if not rating:
+    if rating is None:
         return None, None, err("Rating is required")
+
     if not isinstance(rating, int) or rating < 1 or rating > 5:
         return None, None, err("Rating must be between 1 and 5")
+
+    # review_text is OPTIONAL
+    review_text = data.get('review_text', None)
+
+    if review_text is not None:
+        review_text = review_text.strip()
+
+    # allow empty or missing review_text
+    if review_text == "":
+        review_text = None
 
     return rating, review_text, None
 

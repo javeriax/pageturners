@@ -92,10 +92,10 @@ class TestReviewValidation:
         response = post_review(client, sample_book_id, {'review_text': SAMPLE_REVIEW}, auth_token)
         assert response.status_code == 400
 
-    def test_review_text_required(self, client, mock_db, sample_book_id, auth_token):
-        # TC-RR-03: missing review text
+    def test_review_text_optional(self, client, mock_db, sample_book_id, auth_token):
+        # TC-RR-03: missing review text (allowed)
         response = post_review(client, sample_book_id, {'rating': 5}, auth_token)
-        assert response.status_code == 400
+        assert response.status_code == 201
 
     def test_rating_below_1_rejected(self, client, mock_db, sample_book_id, auth_token):
         # TC-RR-03: rating lower bound
@@ -112,11 +112,16 @@ class TestReviewValidation:
         response = post_review(client, sample_book_id, {'rating': 3.5, 'review_text': SAMPLE_REVIEW}, auth_token)
         assert response.status_code == 400
 
-    def test_whitespace_only_review_text_rejected(self, client, mock_db, sample_book_id, auth_token):
-        # TC-RR-03: empty/whitespace review
-        response = post_review(client, sample_book_id, {'rating': 5, 'review_text': '   '}, auth_token)
-        assert response.status_code == 400
 
+    def test_whitespace_only_review_text_allowed(self, client, mock_db, sample_book_id, auth_token):
+        #  empty/whitespace review (allowed)
+        response = post_review(
+            client,
+            sample_book_id,
+            {'rating': 5, 'review_text': '   '},
+            auth_token
+        )
+        assert response.status_code == 201
 
 # TC-RR-02
 # REVIEW SUBMISSION TESTS
