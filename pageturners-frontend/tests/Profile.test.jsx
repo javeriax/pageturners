@@ -10,6 +10,8 @@ import Profile from '../src/pages/Profile';
 import { BrowserRouter } from 'react-router-dom';
 import React from 'react';
 
+Element.prototype.scrollIntoView = vi.fn();
+
 // Mock the API
 vi.mock('../src/api/profile', () => ({
     getProfile: vi.fn(),
@@ -27,7 +29,7 @@ const renderWithRouter = (component) => {
     );
 };
 
-// ─── FR6: GET PROFILE TESTS ───
+//  FR6: GET PROFILE TESTS 
 
 describe('FR6: Fetch and Display Profile', () => {
 
@@ -35,7 +37,7 @@ describe('FR6: Fetch and Display Profile', () => {
         vi.clearAllMocks();
     });
 
-    it('TC-UP-01: Should load and display user profile data', async () => {
+    it('Should load and display user profile data', async () => {
         getProfile.mockResolvedValue({
             success: true,
             data: {
@@ -56,7 +58,7 @@ describe('FR6: Fetch and Display Profile', () => {
     });
 
 
-    it('TC-UP-02: Should display loading state initially', async () => {
+    it('Should display loading state initially', async () => {
         getProfile.mockImplementation(() => new Promise(() => { }));
 
         renderWithRouter(<Profile />);
@@ -64,7 +66,7 @@ describe('FR6: Fetch and Display Profile', () => {
         expect(screen.getByText(/loading profile/i)).toBeInTheDocument();
     });
 
-    it('TC-UP-11: Should redirect to login on 401 unauthorized', async () => {
+    it('Should redirect to login on 401 unauthorized', async () => {
         getProfile.mockResolvedValue({
             success: false,
             message: '401 Unauthorized'
@@ -78,7 +80,7 @@ describe('FR6: Fetch and Display Profile', () => {
     });
 });
 
-// ─── FR6.2: UPDATE PROFILE TESTS ───
+//  FR6.2: UPDATE PROFILE TESTS 
 
 describe('FR6.2: Update Profile Fields', () => {
 
@@ -95,7 +97,7 @@ describe('FR6.2: Update Profile Fields', () => {
         });
     });
 
-    it('TC-UP-04: Should save bio successfully', async () => {
+    it('Should save bio successfully', async () => {
         const user = userEvent.setup();
 
         updateProfile.mockResolvedValue({
@@ -107,11 +109,11 @@ describe('FR6.2: Update Profile Fields', () => {
         renderWithRouter(<Profile />);
 
         // Wait for page to load, then click edit for bio
-        await waitFor(() => screen.getByText('No bio yet') || screen.getByText('Original bio'));
+        await waitFor(() => expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument());
         const editButtons = screen.getAllByTitle('Edit');
         await user.click(editButtons[0]); // opens bio textarea
 
-        const bioTextarea = screen.getByPlaceholderText('Tell us about yourself');
+        const bioTextarea = screen.getByPlaceholderText('Write about your self <3');
         await user.clear(bioTextarea);
         await user.type(bioTextarea, 'New bio');
 
@@ -122,7 +124,7 @@ describe('FR6.2: Update Profile Fields', () => {
         });
     });
 
-    it('TC-UP-05: Should save username successfully', async () => {
+    it('Should save username successfully', async () => {
         const user = userEvent.setup();
 
         updateProfile.mockResolvedValue({
@@ -149,7 +151,7 @@ describe('FR6.2: Update Profile Fields', () => {
         });
     });
 
-    it('TC-UP-08: Should show error when username is already taken', async () => {
+    it('Should show error when username is already taken', async () => {
         const user = userEvent.setup();
 
         updateProfile.mockResolvedValue({
@@ -174,7 +176,7 @@ describe('FR6.2: Update Profile Fields', () => {
         });
     });
 
-    it('TC-UP-06: Should save email and show verification message', async () => {
+    it('Should save email and show verification message', async () => {
         const user = userEvent.setup();
 
         updateProfile.mockResolvedValue({
@@ -199,7 +201,7 @@ describe('FR6.2: Update Profile Fields', () => {
         });
     });
 
-    it('TC-UP-09: Should show error for invalid email format', async () => {
+    it('Should show error for invalid email format', async () => {
         const user = userEvent.setup();
 
         renderWithRouter(<Profile />);
@@ -220,7 +222,7 @@ describe('FR6.2: Update Profile Fields', () => {
     });
 });
 
-// ─── FR7.3: PASSWORD CHANGE TESTS ───
+//  FR7.3: PASSWORD CHANGE TESTS 
 
 describe('FR7.3: Change Password', () => {
 
@@ -237,7 +239,7 @@ describe('FR7.3: Change Password', () => {
         });
     });
 
-    it('TC-UP-12: Should change password successfully', async () => {
+    it('Should change password successfully', async () => {
         const user = userEvent.setup();
 
         changePassword.mockResolvedValue({
@@ -261,7 +263,7 @@ describe('FR7.3: Change Password', () => {
         });
     });
 
-    it('TC-UP-13: Should show error when current password is incorrect', async () => {
+    it('Should show error when current password is incorrect', async () => {
         const user = userEvent.setup();
 
         changePassword.mockResolvedValue({
@@ -284,7 +286,7 @@ describe('FR7.3: Change Password', () => {
         });
     });
 
-    it('TC-UP-14: Should show error for password under 8 characters', async () => {
+    it('Should show error for password under 8 characters', async () => {
         const user = userEvent.setup();
 
         renderWithRouter(<Profile />);
@@ -302,7 +304,7 @@ describe('FR7.3: Change Password', () => {
         });
     });
 
-    it('TC-UP-15: Should show error for unauthenticated password change', async () => {
+    it('Should show error for unauthenticated password change', async () => {
         const user = userEvent.setup();
 
         changePassword.mockResolvedValue({
@@ -327,7 +329,7 @@ describe('FR7.3: Change Password', () => {
 
 });
 
-// ─── FR8: PICTURE UPLOAD TESTS ───
+//  FR8: PICTURE UPLOAD TESTS 
 
 describe('FR8: Profile Picture Upload', () => {
 
@@ -344,7 +346,7 @@ describe('FR8: Profile Picture Upload', () => {
         });
     });
 
-    it('TC-UP-16: Should upload valid JPEG picture successfully', async () => {
+    it('Should upload valid JPEG picture successfully', async () => {
         const user = userEvent.setup();
 
         uploadProfilePicture.mockResolvedValue({
@@ -354,8 +356,8 @@ describe('FR8: Profile Picture Upload', () => {
         });
 
         renderWithRouter(<Profile />);
-
-        const fileInput = document.querySelector('input[type="file"]');
+        await waitFor(() => expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument());
+        const fileInput =document.querySelector('input[accept="image/jpeg,image/png,image/jpg"]');
         const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
 
         await act(async () => {
@@ -363,11 +365,11 @@ describe('FR8: Profile Picture Upload', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByText(/profile picture uploaded successfully/i)).toBeInTheDocument();
+            expect(screen.getByText('Profile picture updated successfully!')).toBeInTheDocument();
         });
     });
 
-    it('TC-UP-17: Should upload valid PNG picture successfully', async () => {
+    it('Should upload valid PNG picture successfully', async () => {
         const user = userEvent.setup();
 
         uploadProfilePicture.mockResolvedValue({
@@ -377,8 +379,8 @@ describe('FR8: Profile Picture Upload', () => {
         });
 
         renderWithRouter(<Profile />);
-
-        const fileInput = document.querySelector('input[type="file"]');
+        await waitFor(() => expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument());
+        const fileInput = document.querySelector('input[accept="image/jpeg,image/png,image/jpg"]');
         const file = new File(['test'], 'test.png', { type: 'image/png' });
 
         await act(async () => {
@@ -386,11 +388,11 @@ describe('FR8: Profile Picture Upload', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByText(/profile picture uploaded successfully/i)).toBeInTheDocument();
-        });
+            expect(screen.getByText('Profile picture updated successfully!')).toBeInTheDocument();
+        }, { timeout: 500 });
     });
 
-    it('TC-UP-18: Should show error for invalid file type', async () => {
+    it('Should show error for invalid file type', async () => {
         const user = userEvent.setup();
 
         uploadProfilePicture.mockResolvedValue({
@@ -398,19 +400,24 @@ describe('FR8: Profile Picture Upload', () => {
             message: 'Only JPG/PNG/JPEG files allowed'
         });
 
+        // Replace the invalid file type test body with:
         renderWithRouter(<Profile />);
+        await waitFor(() => expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument());
 
-        const fileInput = document.querySelector('input[type="file"]');
+        const fileInput = document.querySelector('input[accept="image/jpeg,image/png,image/jpg"]');
         const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
 
-        await user.upload(fileInput, file);
+        await act(async () => {
+            Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
+            fireEvent.change(fileInput);
+        });
 
         await waitFor(() => {
-            expect(screen.getByText(/only jpg\/png\/jpeg files allowed/i)).toBeInTheDocument();
+            expect(screen.getByText('Only JPG/PNG/JPEG files allowed')).toBeInTheDocument();
         });
     });
 
-    it('TC-UP-19: Should show error for unauthenticated picture upload', async () => {
+    it('Should show error for unauthenticated picture upload', async () => {
         uploadProfilePicture.mockResolvedValue({
             success: false,
             message: '401 Unauthorized'
@@ -419,12 +426,12 @@ describe('FR8: Profile Picture Upload', () => {
         renderWithRouter(<Profile />);
 
         await waitFor(() => {
-            expect(screen.getByRole('button', { name: /upload new profile picture/i })).toBeInTheDocument();
+            expect(document.querySelector('input[accept="image/jpeg,image/png,image/jpg"]')).toBeInTheDocument();
         });
     });
 });
 
-// ─── NAVIGATION TESTS ───
+//  NAVIGATION TESTS 
 
 describe('Profile Navigation', () => {
 
@@ -441,37 +448,40 @@ describe('Profile Navigation', () => {
         });
     });
 
-    it('TC-UP-22: Should scroll to profile section when sidebar button clicked', async () => {
+    it('Should scroll to profile section when sidebar button clicked', async () => {
         const user = userEvent.setup();
 
         renderWithRouter(<Profile />);
+        await waitFor(() => expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument());
 
         const profileBtn = screen.getByRole('button', { name: 'Profile' });
         await user.click(profileBtn);
 
-        expect(screen.getByText('Profile')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Profile' })).toBeInTheDocument();
     });
 
-    it('TC-UP-23: Should scroll to account section when sidebar button clicked', async () => {
+    it('Should scroll to account section when sidebar button clicked', async () => {
         const user = userEvent.setup();
 
         renderWithRouter(<Profile />);
+        await waitFor(() => expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument());
 
         const accountBtn = screen.getByRole('button', { name: 'Account' });
         await user.click(accountBtn);
 
-        expect(screen.getByText('Account')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Account' })).toBeInTheDocument();
     });
 
-    it('TC-UP-24: Should scroll to password section when sidebar button clicked', async () => {
+    it('Should scroll to password section when sidebar button clicked', async () => {
         const user = userEvent.setup();
 
         renderWithRouter(<Profile />);
+        await waitFor(() => expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument());
 
         const passwordBtn = screen.getByRole('button', { name: 'Password' });
         await user.click(passwordBtn);
 
-        expect(screen.getByText('Password')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Password' })).toBeInTheDocument();
     });
 });
 
