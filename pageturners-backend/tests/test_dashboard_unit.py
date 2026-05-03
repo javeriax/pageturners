@@ -1,40 +1,10 @@
-import pytest
-import mongomock
 from backend_app import app
 from flask_jwt_extended import create_access_token
 from bson import ObjectId
 
-@pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    # Long key to satisfy SHA256 requirements
-    app.config['JWT_SECRET_KEY'] = 'a_very_long_and_extremely_secure_test_secret_key_32_chars'
-    with app.test_client() as client:
-        yield client
+#tc-BD-06 is in test_book_details_unit.py since it focuses on the book details endpoint, not the dashboard search/genre filter functionality.
 
-@pytest.fixture
-def auth_header():
-    with app.app_context():
-        token = create_access_token(identity="testuser@example.com")
-        return {'Authorization': f'Bearer {token}'}
-
-@pytest.fixture(autouse=True)
-def mock_db(monkeypatch):
-    # 1. Create a fresh mock client for every single test
-    mock_client = mongomock.MongoClient()
-    mock_database = mock_client["pageturners_test"]
-    
-    # 2. Directly overwrite the db attribute on the app object..
-    monkeypatch.setattr(app, "db", mock_database)
-    
-    # 3. Explicitly clear collections to prevent leakage
-    mock_database.books.delete_many({})
-    mock_database.reviews.delete_many({})
-    
-    return mock_database
-
-
-# TC-BD-01: search by title
+#tc-BD-01: search by title
 def test_search_by_title(client, mock_db, auth_header):
     mock_db.books.insert_one({
         "title": "Harry Potter and the Prisoner", 
@@ -49,7 +19,7 @@ def test_search_by_title(client, mock_db, auth_header):
     assert len(data["data"]) == 1
     assert "Harry" in data["data"][0]["title"]
 
-# TC-BD-02: search by author
+#tc-BD-02: search by author
 def test_search_by_author(client, mock_db, auth_header):
     mock_db.books.insert_one({
         "title": "The Hobbit", 
@@ -62,7 +32,7 @@ def test_search_by_author(client, mock_db, auth_header):
     assert response.status_code == 200
     assert "Tolkien" in data["data"][0]["author_name"]
 
-# TC-BD-03: single genre filter
+# tc-BD-03: single genre filter
 def test_single_genre_filter(client, mock_db, auth_header):
     mock_db.books.insert_many([
         {"title": "Book 1", "genre": ["Fantasy"]},
@@ -76,7 +46,7 @@ def test_single_genre_filter(client, mock_db, auth_header):
     assert len(data["data"]) == 1
     assert "Fantasy" in data["data"][0]["genre"]
 
-# TC-BD-04: multi-genre filter
+# tc-BD-04: multi-genre filter
 def test_genre_filter_multi(client, mock_db, auth_header):
     mock_db.books.insert_many([
         {"title": "Book A", "genre": ["Fantasy", "Romance"]},
@@ -104,3 +74,63 @@ def test_get_genres_list(client, mock_db, auth_header):
     assert response.status_code == 200
     # verify unique, sorted output
     assert data["data"] == ["Fantasy", "Sci-Fi"]
+
+# tc-bd-05: combined search and genre filter
+def test_combined_search_and_filter(client, mock_db, auth_header):
+    mock_db.books.insert_many([
+        {"title": "Harry Potter", "author_name": "JK Rowling", "genre": ["Fantasy"]},
+        {"title": "Harry Science", "author_name": "Someone", "genre": ["Sci-Fi"]},
+        {"title": "Random Book", "author_name": "JK Rowling", "genre": ["Fantasy"]}
+    ])
+
+    response = client.get(
+        '/api/dashboard/?search=Harry&genre=Fantasy',
+        headers=auth_header
+    )
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert len(data["data"]) == 1
+    assert data["data"][0]["title"] == "Harry Potter"
+
+# tc-bd-07: empty search results
+def test_empty_search_results(client, mock_db, auth_header):
+    mock_db.books.insert_one({
+        "title": "Some Book",
+        "author_name": "Known Author",
+        "genre": ["Fantasy"]
+    })
+
+    response = client.get(
+        '/api/dashboard/?search=NonExistentBookXYZ',
+        headers=auth_header
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["data"] == []
+    assert data["success"] is True
+
+
+#tc-api-03: search response structure
+#this test verifies that the search endpoint returns the expected fields in the response:
+def test_search_response_structure(client, mock_db, auth_header):
+    mock_db.books.insert_one({
+        "title": "Harry Potter",
+        "author_name": "J.K. Rowling",
+        "genre": ["Fantasy"],
+        "rating": 4.5,
+        "cover_image": "img.jpg"
+    })
+
+    response = client.get('/api/dashboard/?search=Harry', headers=auth_header)
+    data = response.get_json()
+
+    assert response.status_code == 200
+
+    book = data["data"][0]
+
+    assert "title" in book
+    assert "author_name" in book
+    assert "genre" in book

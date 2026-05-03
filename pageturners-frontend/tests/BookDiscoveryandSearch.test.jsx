@@ -1,4 +1,4 @@
-//TC-BD-01 - BD - 07
+//TC-BD-01 - BD-07 from test strategy document:
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -6,18 +6,25 @@ import userEvent from '@testing-library/user-event';
 import { BrowserRouter, MemoryRouter, Routes, Route } from 'react-router-dom';  
 
 import Dashboard from '../src/pages/Dashboard';
-import * as booksApi from '../src/api/books';
+import * as booksApi from '../src/api/dashboard';
 import BookDetails from '../src/pages/BookDetails'; 
+import * as bookDetailsApi from '../src/api/books';
 
-// Mock the API module
-vi.mock('../src/api/books', () => ({
+// Mock the API module:
+vi.mock('../src/api/dashboard', () => ({
     searchBooks: vi.fn(),
     getInitialBooks: vi.fn(),
     getBookDetails: vi.fn(),
     getGenres: vi.fn(),
     getBookById: vi.fn(),
 }));
-
+//also mock the books api for the BookDetails tests:
+vi.mock('../src/api/books', () => ({
+    getBookDetails: vi.fn(),
+    submitReview: vi.fn(),
+    deleteReview: vi.fn(),
+    addToLibrary: vi.fn(),
+}));
 
 const localStorageMock = (() => {
     let store = {};
@@ -220,10 +227,10 @@ describe('Dashboard Component - Complete Discovery Tests', () => {
             reviews: [] // Must be an array for book.reviews.length
         };
 
-        vi.mocked(booksApi.getBookDetails).mockResolvedValue({
-            success: true,
-            data: mockBook
-        });
+        vi.mocked(bookDetailsApi.getBookDetails).mockResolvedValue({
+    success: true,
+    data: mockBook
+});
 
         // Mock token for the userId payload logic in useEffect
         const fakePayload = btoa(JSON.stringify({ sub: 'user_123' }));

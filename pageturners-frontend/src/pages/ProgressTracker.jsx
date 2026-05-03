@@ -1,3 +1,4 @@
+//ProgressTracker.jsx: Component for tracking reading progress of a book, allowing users to input their current page and see a visual progress bar:
 import React, { useState } from 'react';
 import { updateProgress } from '../api/library';
 
@@ -58,6 +59,7 @@ const ReadingProgress = ({ book, onUpdate }) => {
         }
     };
 
+    // render component with progress bar, input field, and save button:
     return (
         <div className="reading-progress-container">
             <p className="progress-label">Reading progress:</p>
@@ -86,7 +88,11 @@ const ReadingProgress = ({ book, onUpdate }) => {
                     onClick={handleSave}
                     disabled={status.loading}
                 >
-                    {status.loading ? '...' : 'Save Progress'}
+                   {status.loading
+                    ? 'Saving...'
+                    : status.success
+                        ? 'Saved!'
+                        : 'Save Progress'}
                 </button>
             </div>
 

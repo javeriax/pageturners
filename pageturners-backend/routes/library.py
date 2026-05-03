@@ -218,8 +218,7 @@ def update_library_status(book_id):
         print(f"status error: {e}")
         return {"success": False, "message": str(e)}, 500
 
-
-# UPDATE PROGRESS
+# UPDATE PROGRESS ENDPOINT:
 @library_bp.route('/<book_id>/progress', methods=['PATCH'])
 @jwt_required()
 def update_progress(book_id):
@@ -236,20 +235,38 @@ def update_progress(book_id):
         data = request.get_json()
         new_page = data.get('current_page')
 
+        # 1. check library entry first
+        entry = get_library_entry(db, user_id, book_obj_id)
+        if not entry:
+            return {"success": False, "message": "Book not found in your library"}, 404
+
+        # 2. block invalid statuses
+        if entry.get("status") in ["completed", "dropped", "want to read"]:
+            return {
+                "success": False,
+                "message": "Cannot update progress for this book status"
+            }, 400
+
+        # 3. check book exists
         book = db["books"].find_one({"_id": book_obj_id})
         if not book:
             return {"success": False, "message": "Book not found"}, 404
 
         total_pages = book.get('total_pages', 0)
 
+        # 4. validate page input
         if (
             new_page is None or
             not isinstance(new_page, int) or
             new_page < 0 or
             new_page > total_pages
         ):
-            return {"success": False, "message": "Valid page number is required"}, 400
+            return {
+                "success": False,
+                "message": "Valid page number is required"
+            }, 400
 
+        # 5. update progress
         result = db["user_library"].update_one(
             {
                 "user_id": ObjectId(user_id),
@@ -262,7 +279,7 @@ def update_progress(book_id):
                 }
             }
         )
-
+        #check if book was found and updated
         if result.matched_count == 0:
             return {"success": False, "message": "Book not found in your library"}, 404
 

@@ -137,6 +137,7 @@ export default function Login() {
                             type="email"
                             id="email"
                             name="email"
+                            data-testid="email-input"
                             value={formData.email}
                             onChange={handleChange}
                             placeholder="name@example.com"
@@ -155,6 +156,7 @@ export default function Login() {
                             type="password"
                             id="password"
                             name="password"
+                            data-testid="password-input"
                             value={formData.password}
                             onChange={handleChange}
                             placeholder="Enter your password"
@@ -169,6 +171,7 @@ export default function Login() {
                     {/* submit */}
                     <button
                         type="submit"
+                        data-testid="login-submit-btn"
                         className="auth-button"
                         disabled={loading}
                     >

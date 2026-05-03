@@ -176,14 +176,14 @@ export default function Library() {
                 </nav>
             </header>
 
-            {/* ── main content ── */}
+            {/* main content */}
             <div className="library-container">
                 <div className="library-header">
                     <h1>My Library</h1>
                     <p className="library-subtitle">All your books in one place</p>
                 </div>
 
-                {/* ── error message ── */}
+                {/* error message */}
                 {error && <div className="error-message">{error}</div>}
                 {removeError && <div className="error-message">{removeError}</div>}
 
@@ -202,7 +202,7 @@ export default function Library() {
                     </div>
                 )}
 
-                {/* ── stats section ── */}
+                {/*stats section */}
                 {totals.total > 0 && (
                     <div className="library-stats">
                         <div className="stat-box">
@@ -224,7 +224,7 @@ export default function Library() {
                     </div>
                 )}
 
-                {/* ── books organized by status ── */}
+                {/* books organized by status */}
                 {totals.total > 0 && (
                     <div className="library-sections">
                         <StatusSection

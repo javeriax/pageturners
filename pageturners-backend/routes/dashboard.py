@@ -173,3 +173,4 @@ def search_books():
     except Exception as e:
         print(f"Error searching books: {e}")
         return {"success": False, "message": str(e), "data": []}, 500
+    

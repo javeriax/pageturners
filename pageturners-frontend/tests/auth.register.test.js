@@ -1,0 +1,170 @@
+/* COVERS TEST STRATEGY CASES:
+ * - TC-AM-01: New User Registration (Valid data format)
+ * - TC-AM-02: Duplicate Email Validation (Error handling)
+ * - TC-AM-10: Email Verification After Registration    */
+
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { registerUser, verifyEmail, loginUser, logoutUser } from '../src/api/auth';
+// Mock fetch for testing API calls without actual network requests
+global.fetch = vi.fn();
+
+// Mock localStorage for testing data persistence
+const localStorageMock = (() => {
+    let store = {};
+    return {
+        getItem: (key) => store[key] || null,
+        setItem: (key, value) => {
+            store[key] = value.toString();
+        },
+        removeItem: (key) => {
+            delete store[key];
+        },
+        clear: () => {
+            store = {};
+        },
+    };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+    value: localStorageMock,
+});
+
+describe('Authentication API Functions - Frontend Tests', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        localStorage.clear();
+    });
+
+    describe('registerUser', () => {
+        /**
+         * TC-AM-01 
+         * Verifies that registration data is sent to the correct Flask port (5001).
+         */
+        it('should send registration request with correct format', async () => {
+            const mockResponse = {
+                success: true,
+                message: 'Registration successful',
+            };
+
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                json: async () => mockResponse,
+            });
+
+            await registerUser('testuser', 'test@example.com', 'Password123');
+
+            expect(global.fetch).toHaveBeenCalledWith(
+                'http://localhost:5001/api/auth/register', // Fixed Port
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        email: 'test@example.com',
+                        password: 'Password123',
+                    }),
+                }
+            );
+        });
+        // TC-AM-02: Tests that registerUser() returns an error response when the backend indicates a duplicate email
+        it('should return error response when backend returns error', async () => {
+            const mockResponse = {
+                success: false,
+                message: 'Email already registered',
+            };
+
+            global.fetch.mockResolvedValueOnce({
+                ok: false,
+                json: async () => mockResponse,
+            });
+
+            const result = await registerUser('testuser', 'existing@example.com', 'Password123');
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain('Email already registered');
+        });
+
+        it('should return success response correctly', async () => {
+            const mockResponse = {
+                success: true,
+                message: 'Registration successful. Verification code sent to your email.',
+            };
+
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                json: async () => mockResponse,
+            });
+
+            const result = await registerUser('testuser', 'test@example.com', 'Password123');
+
+            expect(result.success).toBe(true);
+            expect(result.message).toBe('Registration successful. Verification code sent to your email.');
+        });
+    });
+
+    describe('verifyEmail', () => {
+        /**
+         * TC-AM-10 
+         * Corrects payload key to "verification_code" as required by the backend logic.
+         */
+        it('should send verify email request with correct format', async () => {
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    success: true,
+                    message: 'Email verified',
+                }),
+            });
+
+            await verifyEmail('test@example.com', '482910');
+
+            expect(global.fetch).toHaveBeenCalledWith(
+                'http://localhost:5001/api/auth/verify-email', // Fixed Port
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        verification_code: '482910', // Fixed Key name
+                    }),
+                }
+            );
+        });
+
+        it('should handle invalid verification code error', async () => {
+            const mockResponse = {
+                success: false,
+                message: 'Invalid or expired verification code',
+            };
+
+            global.fetch.mockResolvedValueOnce({
+                ok: false,
+                json: async () => mockResponse,
+            });
+
+            const result = await verifyEmail('test@example.com', 'invalid_code');
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe('Invalid or expired verification code');
+        });
+
+        it('should handle successful email verification', async () => {
+            const mockResponse = {
+                success: true,
+                message: 'Email verified successfully',
+            };
+
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                json: async () => mockResponse,
+            });
+
+            const result = await verifyEmail('test@example.com', '482910');
+
+            expect(result.success).toBe(true);
+            expect(result.message).toBe('Email verified successfully');
+        });
+    });
+});

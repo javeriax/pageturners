@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+
+//Register frontend unit testing:
 /* 
  * type: frontend ui/component tests
  * description: verifies register.jsx ui rendering, input validation, and user interaction.
@@ -124,7 +125,7 @@ describe('Register Component UI', () => {
         expect(submitBtn.textContent).toMatch(/creating account|loading/i);
     });
 
-    // field cleanup
+    // field cleanup/
     it('clears form fields after successful registration (tc-am-01)', async () => {
         const user = userEvent.setup();
         vi.mocked(authApi.registerUser).mockResolvedValue({ success: true, message: 'Success' });
