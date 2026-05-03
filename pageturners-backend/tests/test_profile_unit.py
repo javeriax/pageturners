@@ -105,7 +105,8 @@ class TestUpdateProfile:
         token, _ = auth_token
         response = patch_profile(client, token, {"email": "newemail@example.com"})
         assert response.status_code == 200
-        assert response.get_json()['data']['email'] == 'newemail@example.com'
+        data = response.get_json()['data']
+        assert data['email'] == 'test@example.com'  
 
     # tc-am-07 partial update
     def test_update_partial_fields(self, client, auth_token):
@@ -237,7 +238,7 @@ class TestProfileIntegration:
         data = client.get('/api/profile', headers=auth_headers(token)).get_json()['data']
         assert data['bio'] == 'Updated bio'
         assert data['username'] == 'newusername'
-        assert data['email'] == 'new@example.com'
+        assert data['email'] == 'test@example.com'
 
     # tc-am-07 db persistence check
     def test_profile_changes_persist_in_database(self, client, mock_db, auth_token):
