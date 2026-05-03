@@ -8,435 +8,276 @@ from datetime import datetime, timezone
 import bcrypt
 import base64
 import re
+import os
+import hashlib
+import secrets
 
 profile_bp = Blueprint('profile', __name__, url_prefix='/api/profile')
 
-# Helper function to validate email format
+#  CONSTANTS 
+
+BACKEND_URL = "http://localhost:5001"
+UPLOAD_DIR = 'uploads/profile_pictures'
+
+#  HELPERS 
+
 def is_valid_email(email):
     """FR7.2: Validate email format"""
-    pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
-    return re.match(pattern, email) is not None
+    return re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email) is not None
 
-# Helper function to validate file type
-
-#profile.py
 def is_valid_image(base64_str):
     """FR8: Validate image file type from base64 string"""
-    # Check for data:image/jpeg;base64, data:image/png;base64, etc.
-    if base64_str.startswith('data:image/jpeg;base64,') or base64_str.startswith('data:image/jpg;base64,'):
+    if base64_str.startswith(('data:image/jpeg;base64,', 'data:image/jpg;base64,')):
         return True, 'jpeg'
-    elif base64_str.startswith('data:image/png;base64,'):
+    if base64_str.startswith('data:image/png;base64,'):
         return True, 'png'
     return False, None
 
-# Helper function to store image
 def store_image(base64_str, user_id):
-    """FR8: Store uploaded image and return URL"""
-    import os
-    import hashlib
-    
-    upload_dir = 'uploads/profile_pictures'
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    # Detect extension BEFORE stripping the header
-    if 'jpeg' in base64_str or 'jpg' in base64_str:
-        file_ext = 'jpg'
-    else:
-        file_ext = 'png'
-    
-    # Now strip the data URI prefix
+    """FR8: Store uploaded image and return relative URL"""
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+    file_ext = 'jpg' if ('jpeg' in base64_str or 'jpg' in base64_str) else 'png'
+
     if ',' in base64_str:
         base64_str = base64_str.split(',')[1]
-    
+
     try:
         image_data = base64.b64decode(base64_str)
     except Exception:
         return None
-    
+
     hash_name = hashlib.md5(f"{user_id}{datetime.now(timezone.utc).timestamp()}".encode()).hexdigest()
-    filename = f"{hash_name}.{file_ext}"
-    
-    filepath = os.path.join(upload_dir, filename)
+    filepath = os.path.join(UPLOAD_DIR, f"{hash_name}.{file_ext}")
+
     try:
         with open(filepath, 'wb') as f:
             f.write(image_data)
-        return f"/uploads/profile_pictures/{filename}"
+        return f"/{filepath}"
     except Exception:
         return None
 
+def full_picture_url(profile_pic):
+    """Prefix relative picture paths with backend URL"""
+    if profile_pic and not profile_pic.startswith('http'):
+        return f"{BACKEND_URL}{profile_pic}"
+    return profile_pic
 
+def get_user_or_404(users_collection, user_id):
+    """Fetch user by ID or return None"""
+    return users_collection.find_one({"_id": ObjectId(user_id)})
 
-# FR6: GET /api/profile - Fetch current user's profile data
+def serialize_user(user):
+    """Return serializable profile dict from user document"""
+    return {
+        "user_id": str(user["_id"]),
+        "username": user.get("username", ""),
+        "email": user.get("email", ""),
+        "bio": user.get("bio", ""),
+        "profile_picture": full_picture_url(user.get("profile_picture", ""))
+    }
+
+def validate_username(username):
+    """Returns error string or None if valid"""
+    if not username:
+        return "Username cannot be empty"
+    if len(username) < 3:
+        return "Username must be at least 3 characters"
+    if len(username) > 20:
+        return "Username cannot exceed 20 characters"
+    if not re.match(r'^[a-zA-Z0-9_]+$', username):
+        return "Username can only contain letters, numbers, and underscores"
+    return None
+
+def validate_password_complexity(password):
+    """Returns error string or None if valid"""
+    if len(password) < 8:
+        return "New password must be at least 8 characters"
+    if not re.search(r'[a-z]', password):
+        return "Password must contain at least one lowercase letter"
+    if not re.search(r'[A-Z]', password):
+        return "Password must contain at least one uppercase letter"
+    if not re.search(r'\d', password):
+        return "Password must contain at least one number"
+    return None
+
+def err(message, status=400):
+    return {"success": False, "message": message}, status
+
+def ok(message, data=None, status=200):
+    response = {"success": True, "message": message}
+    if data:
+        response["data"] = data
+    return response, status
+
+#  ROUTES 
+
+# FR6: GET /api/profile
 @profile_bp.route('', methods=['GET'])
 @jwt_required()
 def get_profile():
-    """
-    Fetch current user's profile including bio, username, email, and profile picture
-    """
     try:
         user_id = get_jwt_identity()
         db = current_app.db
-        
         if db is None:
-            return {"success": False, "message": "Database connection failed"}, 500
-        
-        users_collection = db["users"]
-        user = users_collection.find_one({"_id": ObjectId(user_id)})
-        
+            return err("Database connection failed", 500)
+
+        user = get_user_or_404(db["users"], user_id)
         if not user:
-            return {"success": False, "message": "User not found"}, 404
-        
-        # Get profile picture with full URL
-        profile_pic = user.get("profile_picture", "")
-        if profile_pic and not profile_pic.startswith('http'):
-            # Add backend URL prefix if it's a relative path
-            profile_pic = f"http://localhost:5001{profile_pic}"
-        
-        # FR6: Return profile fields
-        return {
-            "success": True,
-            "data": {
-                "user_id": str(user["_id"]),
-                "username": user.get("username", ""),
-                "email": user.get("email", ""),
-                "bio": user.get("bio", ""),
-                "profile_picture": profile_pic  # ← Now includes full URL
-            }
-        }, 200
-    
+            return err("User not found", 404)
+
+        return ok("Profile fetched", serialize_user(user))
+
     except Exception as e:
         print(f"Error fetching profile: {e}")
-        return {"success": False, "message": str(e)}, 500
-    
-# FR6.2: PATCH /api/profile - Update profile (bio, username, email)
+        return err(str(e), 500)
+
+
+# FR6.2: PATCH /api/profile
 @profile_bp.route('', methods=['PATCH'])
 @jwt_required()
 def update_profile():
-    """
-    Update user profile fields (bio, username, email)
-    Supports partial updates - only provided fields are updated
-    
-    Request body:
-    {
-        "bio": "string (optional)",
-        "username": "string (optional)",
-        "email": "string (optional)"
-    }
-    
-    Returns:
-        200: Profile updated successfully
-        400: Invalid input (bad email format, etc)
-        409: Username already taken
-        401: Unauthorized (token invalid/expired)
-    """
     try:
         user_id = get_jwt_identity()
         db = current_app.db
-        
         if db is None:
-            return {"success": False, "message": "Database connection failed"}, 500
-        
+            return err("Database connection failed", 500)
+
         data = request.get_json()
         users_collection = db["users"]
-        
         update_data = {}
-        
-        # FR6.2: Update bio if provided
-        # FR6.2: Update bio if provided
+
+        # FR6.2: Bio
         if "bio" in data:
             bio_text = data["bio"].strip()
             if len(bio_text) > 150:
-                return {
-                    "success": False,
-                    "message": "Oopsies! Bio cannot exceed 150 characters :()"
-                }, 400
+                return err("Oopsies! Bio cannot exceed 150 characters :()")
             update_data["bio"] = bio_text
-        
-        # FR6.2: Update username if provided
+
+        # FR6.2: Username
         if "username" in data:
             new_username = data["username"].strip()
+            error = validate_username(new_username)
+            if error:
+                return err(error)
 
-            if not new_username:
-                return {"success": False, "message": "Username cannot be empty"}, 400
+            if users_collection.find_one({"username": new_username, "_id": {"$ne": ObjectId(user_id)}}):
+                return err("Username already taken", 409)
 
-            if len(new_username) < 3:
-                return {"success": False, "message": "Username must be at least 3 characters"}, 400
-
-            if len(new_username) > 20:
-                return {"success": False, "message": "Username cannot exceed 20 characters"}, 400
-
-            if not re.match(r'^[a-zA-Z0-9_]+$', new_username):
-                return {"success": False, "message": "Username can only contain letters, numbers, and underscores"}, 400
-    
-            
-            # FR7.1: Check if username is already taken
-            existing_user = users_collection.find_one(
-                {"username": new_username, "_id": {"$ne": ObjectId(user_id)}}
-            )
-            
-            if existing_user:
-                return {
-                    "success": False,
-                    "message": "Username already taken"
-                }, 409
-            
             update_data["username"] = new_username
-        
-        # FR6.2: Update email if provided
+
+        # FR6.2: Email
         if "email" in data:
             new_email = data["email"].strip().lower()
 
-            # FR7.2: Validate email format
             if not is_valid_email(new_email):
-                return {
-                    "success": False,
-                    "message": "Invalid email format"
-                }, 400
+                return err("Invalid email format")
 
-            # Get current user to compare emails
-            current_user = users_collection.find_one({"_id": ObjectId(user_id)})
-            
-            # Bug 1 fix: Only process if email is actually different
+            current_user = get_user_or_404(users_collection, user_id)
             if new_email == current_user.get("email", "").lower():
-                return {
-                    "success": False,
-                    "message": "Email addresss you entered is the same as previous one! Please provide a different email address if you want to update."
-                }, 400
+                return err("Email address you entered is the same as previous one! Please provide a different email address if you want to update.")
 
-            # Check if email is already taken by someone else
-            existing_user = users_collection.find_one(
-                {"email": new_email, "_id": {"$ne": ObjectId(user_id)}}
-            )
+            if users_collection.find_one({"email": new_email, "_id": {"$ne": ObjectId(user_id)}}):
+                return err("Email already registered", 409)
 
-            if existing_user:
-                return {
-                    "success": False,
-                    "message": "Email already registered"
-                }, 409
-
-            # Generate a new verification code
-            import secrets
             verification_code = secrets.token_hex(3).upper()
+            update_data.update({
+                "email": new_email,
+                "is_verified": False,
+                "verification_code": verification_code
+            })
 
-            update_data["email"] = new_email
-            update_data["is_verified"] = False
-            update_data["verification_code"] = verification_code
-
-            # Send verification email
             from routes.auth import send_verification_email
-            send_verification_email(new_email, verification_code)    
-                
-        if not update_data:
-            return {
-                "success": False,
-                "message": "No fields to update"
-            }, 400
-        
-        # FR6.2: API - Confirm partial updates work correctly
-        users_collection.update_one(
-            {"_id": ObjectId(user_id)},
-            {"$set": update_data}
+            send_verification_email(new_email, verification_code)
 
-        )
+        if not update_data:
+            return err("No fields to update")
+
+        users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
+
         if "username" in update_data:
-            # ensure review has updated username
             db["reviews"].update_many(
-                {"user_id": ObjectId(user_id)}, 
+                {"user_id": ObjectId(user_id)},
                 {"$set": {"username": update_data["username"]}}
             )
-        # After updating, fetch updated user
-        updated_user = users_collection.find_one({"_id": ObjectId(user_id)})
 
-        # Get profile picture with full URL
-        profile_pic = updated_user.get("profile_picture", "")
-        if profile_pic and not profile_pic.startswith('http'):
-            profile_pic = f"http://localhost:5001{profile_pic}"
+        updated_user = get_user_or_404(users_collection, user_id)
+        return ok("Profile updated successfully", serialize_user(updated_user))
 
-        return {
-            "success": True,
-            "message": "Profile updated successfully",
-            "data": {
-                "user_id": str(updated_user["_id"]),
-                "username": updated_user.get("username", ""),
-                "email": updated_user.get("email", ""),
-                "bio": updated_user.get("bio", ""),
-                "profile_picture": profile_pic  # ← Add full URL here too
-            }
-        }, 200
-    
     except Exception as e:
         print(f"Error updating profile: {e}")
-        return {"success": False, "message": str(e)}, 500
+        return err(str(e), 500)
 
 
-# FR7.3: POST /api/profile/password - Change password
+# FR7.3: POST /api/profile/password
 @profile_bp.route('/password', methods=['POST'])
 @jwt_required()
 def change_password():
-    """
-    Change user's password
-    Requires valid current password before allowing change
-    
-    Request body:
-    {
-        "current_password": "string",
-        "new_password": "string (minimum 8 characters)"
-    }
-    
-    Returns:
-        200: Password changed successfully
-        400: Current password incorrect or new password invalid
-        401: Unauthorized (token invalid/expired)
-    """
     try:
         user_id = get_jwt_identity()
         db = current_app.db
-        
         if db is None:
-            return {"success": False, "message": "Database connection failed"}, 500
-        
+            return err("Database connection failed", 500)
+
         data = request.get_json()
         current_password = data.get("current_password")
         new_password = data.get("new_password")
-        
+
         if not current_password or not new_password:
-            return {
-                "success": False,
-                "message": "Current password and new password are required"
-            }, 400
-        
-        # FR7.3: Validate new password minimum length and complexity
-        import re
-        if len(new_password) < 8:
-            return {
-                "success": False,
-                "message": "New password must be at least 8 characters"
-            }, 400
-        
-        if not re.search(r'[a-z]', new_password):
-            return {
-                "success": False,
-                "message": "Password must contain at least one lowercase letter"
-            }, 400
-        
-        if not re.search(r'[A-Z]', new_password):
-            return {
-                "success": False,
-                "message": "Password must contain at least one uppercase letter"
-            }, 400
-        
-        if not re.search(r'\d', new_password):
-            return {
-                "success": False,
-                "message": "Password must contain at least one number"
-            }, 400
-        
-        users_collection = db["users"]
-        user = users_collection.find_one({"_id": ObjectId(user_id)})
-        
+            return err("Current password and new password are required")
+
+        error = validate_password_complexity(new_password)
+        if error:
+            return err(error)
+
+        user = get_user_or_404(db["users"], user_id)
         if not user:
-            return {"success": False, "message": "User not found"}, 404
-        
-        # FR7.3: Validate current password matches
+            return err("User not found", 404)
+
         if not bcrypt.checkpw(current_password.encode('utf-8'), user["password"]):
-            return {
-                "success": False,
-                "message": "Current password is incorrect"
-            }, 400
-        
-        # FR7.3: Check if new password is the same as current password
-        if bcrypt.checkpw(new_password.encode('utf-8'), user['password']):
-            return {
-                "success": False,
-                "message": "Your new password cannot be the same as your current password"
-            }, 400
-        
-        # Hash new password
-        hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
-        
-        # Update password
-        users_collection.update_one(
-            {"_id": ObjectId(user_id)},
-            {"$set": {"password": hashed_password}}
-        )
-        
-        return {
-            "success": True,
-            "message": "Password changed successfully"
-        }, 200
-    
+            return err("Current password is incorrect")
+
+        if bcrypt.checkpw(new_password.encode('utf-8'), user["password"]):
+            return err("Your new password cannot be the same as your current password")
+
+        hashed = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+        db["users"].update_one({"_id": ObjectId(user_id)}, {"$set": {"password": hashed}})
+
+        return ok("Password changed successfully")
+
     except Exception as e:
         print(f"Error changing password: {e}")
-        return {"success": False, "message": str(e)}, 500
+        return err(str(e), 500)
 
 
-# FR8: POST /api/profile/picture - Upload profile picture
+# FR8: POST /api/profile/picture
 @profile_bp.route('/picture', methods=['POST'])
 @jwt_required()
 def upload_profile_picture():
-    """
-    Upload and store user's profile picture
-    Accepts base64 encoded image
-    
-    Request body:
-    {
-        "image": "data:image/jpeg;base64,..."
-    }
-
-    Returns:
-        200: Picture uploaded successfully with new URL
-        400: Invalid file type (only JPG/PNG/JPEG allowed)
-        401: Unauthorized (token invalid/expired)
-    """
     try:
         user_id = get_jwt_identity()
         db = current_app.db
-        
         if db is None:
-            return {"success": False, "message": "Database connection failed"}, 500
-        
+            return err("Database connection failed", 500)
+
         data = request.get_json()
         image_base64 = data.get("image")
-        
+
         if not image_base64:
-            return {
-                "success": False,
-                "message": "Image is required"
-            }, 400
-        
-        # FR8: Validate image file type
-        is_valid, file_type = is_valid_image(image_base64)
-        
+            return err("Image is required")
+
+        is_valid, _ = is_valid_image(image_base64)
         if not is_valid:
-            return {
-                "success": False,
-                "message": "Only JPG/PNG/JPEG files allowed"
-            }, 400
-        
-        # FR8: Store image and get URL
+            return err("Only JPG/PNG/JPEG files allowed")
+
         picture_url = store_image(image_base64, user_id)
-        
         if not picture_url:
-            return {
-                "success": False,
-                "message": "Failed to save image"
-            }, 500
-        
-        # Update user profile picture URL
-        users_collection = db["users"]
-        users_collection.update_one(
-            {"_id": ObjectId(user_id)},
-            {"$set": {"profile_picture": picture_url}}
-        )
-        full_url = f"http://localhost:5001{picture_url}"
-        return {
-            "success": True,
-            "message": "Profile picture uploaded successfully",
-            "data": {
-                "profile_picture": full_url
-            }
-        }, 200
-    
+            return err("Failed to save image", 500)
+
+        db["users"].update_one({"_id": ObjectId(user_id)}, {"$set": {"profile_picture": picture_url}})
+
+        return ok("Profile picture uploaded successfully", {"profile_picture": f"{BACKEND_URL}{picture_url}"})
+
     except Exception as e:
         print(f"Error uploading picture: {e}")
-        return {"success": False, "message": str(e)}, 500
+        return err(str(e), 500)
