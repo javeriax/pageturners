@@ -182,9 +182,9 @@ def update_profile():
 
             verification_code = secrets.token_hex(3).upper()
             update_data.update({
-                "email": new_email,
-                "is_verified": False,
-                "verification_code": verification_code
+                "pending_email": new_email,
+                "email_verification_code": verification_code
+                # do NOT touch "email" or "is_verified"
             })
 
             from routes.auth import send_verification_email

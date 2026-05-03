@@ -239,58 +239,59 @@ def verify_email():
         data = request.get_json()
         email = data.get('email', '').strip().lower()
         verification_code = data.get('verification_code', '').strip().upper()
-        
+
         if not email or not verification_code:
-            return {
-                "success": False,
-                "message": "Email and verification code are required"
-            }, 400
-        
+            return {"success": False, "message": "Email and verification code are required"}, 400
+
         from backend_app import db
         users_collection = db["users"]
-        
+
+        # ── Check if this is a pending email change verification ──
+        pending_user = users_collection.find_one({"pending_email": email})
+        if pending_user and pending_user.get("email_verification_code") == verification_code:
+            users_collection.update_one(
+                {"_id": pending_user["_id"]},
+                {
+                    "$set": {
+                        "email": email,
+                        "updated_at": datetime.now(timezone.utc)
+                    },
+                    "$unset": {
+                        "pending_email": "",
+                        "email_verification_code": ""
+                    }
+                }
+            )
+            return {"success": True, "message": "Email updated successfully! You can now log in with your new email."}, 200
+
+        # ── Normal registration verification ──
         user = users_collection.find_one({"email": email})
-        
+
         if not user:
-            return {
-                "success": False,
-                "message": "No account found with this email address."
-            }, 404
+            return {"success": False, "message": "No account found with this email address."}, 404
 
         if user.get("is_verified") is True:
-            return {
-                "success": True, 
-                "message": "Email is already verified. You can go to the login page!"
-            }, 200
+            return {"success": True, "message": "Email is already verified. You can go to the login page!"}, 200
 
         if user.get("verification_code") != verification_code:
-            return {
-                "success": False,
-                "message": "The code you entered is incorrect. Please check your email."
-            }, 400
-        
+            return {"success": False, "message": "The code you entered is incorrect. Please check your email."}, 400
+
         users_collection.update_one(
             {"_id": user["_id"]},
             {
                 "$set": {
                     "is_verified": True,
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.now(timezone.utc)
                 },
-                "$unset": {"verification_code": ""} 
+                "$unset": {"verification_code": ""}
             }
         )
-        
-        return {
-            "success": True,
-            "message": "Email verified successfully! You can now log in."
-        }, 200
-        
+
+        return {"success": True, "message": "Email verified successfully! You can now log in."}, 200
+
     except Exception as e:
         print(f"Email verification error: {e}")
-        return {
-            "success": False,
-            "message": "A server error occurred. Please try again."
-        }, 500
+        return {"success": False, "message": "A server error occurred. Please try again."}, 500
 
 # Login endpoints:
 @auth_bp.route('/login', methods=['POST'])
